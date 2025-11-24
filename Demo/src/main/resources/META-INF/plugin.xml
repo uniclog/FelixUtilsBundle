@@ -1,0 +1,13 @@
+<idea-plugin>
+    <id>com.example.bundledPlugin</id>
+    <name>BundledPlugin</name>
+    <version>1.0.0</version>
+    <vendor email="support@example.com" url="https://example.com">Example</vendor>
+
+    <depends>plugin-a</depends>
+    <depends>plugin-b</depends>
+
+    <description>
+        Плагин, объединяющий Plugin A и Plugin B
+    </description>
+</idea-plugin>

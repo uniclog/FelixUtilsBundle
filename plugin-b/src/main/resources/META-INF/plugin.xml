@@ -1,0 +1,11 @@
+<idea-plugin>
+    <id>plugin-b</id>
+    <name>PluginB</name>
+    <vendor>Me</vendor>
+
+    <applicationListeners>
+        <listener
+                class="io.github.uniclog.pluginb.PluginB"
+                topic="com.intellij.ide.AppLifecycleListener"/>
+    </applicationListeners>
+</idea-plugin>
