@@ -1,0 +1,20 @@
+<idea-plugin>
+    <id>plugin-b</id>
+    <name>PluginB</name>
+    <vendor>Me</vendor>
+
+    <applicationListeners>
+        <listener
+                class="io.github.uniclog.docker.runner.Activator2"
+                topic="com.intellij.ide.AppLifecycleListener"/>
+    </applicationListeners>
+
+    <actions>
+        <action id="RunPluginAction"
+                class="io.github.uniclog.docker.runner.RunPluginAction"
+                text="Run Plugin"
+                description="Run custom plugin logic">
+            <add-to-group group-id="MainToolbarRight" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>

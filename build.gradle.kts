@@ -14,9 +14,13 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        intellijIdea("2025.2.4")
+        intellijIdea("2025.3")
+        testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
+
         pluginModule(implementation(project(":plugin-a")))
         pluginModule(implementation(project(":plugin-b")))
+        pluginModule(implementation(project(":config-deployer")))
+        pluginModule(implementation(project(":ankey-docker-runner")))
     }
 }
 
@@ -27,13 +31,15 @@ subprojects {
 
     dependencies {
         intellijPlatform {
-            intellijIdea("2025.2.4")
+            intellijIdea("2025.3")
         }
     }
 
     repositories {
         mavenCentral()
-        intellijPlatform.defaultRepositories()
+        intellijPlatform {
+            defaultRepositories()
+        }
     }
 
     kotlin {
@@ -47,14 +53,18 @@ subprojects {
             sinceBuild.set("251")
             untilBuild.set("999.*")
         }
+        withType<JavaCompile> {
+            sourceCompatibility = "21"
+            targetCompatibility = "21"
+        }
     }
 }
 
 tasks.register<Zip>("buildBundle") {
     group = "build"
-    description = "Builds a bundle containing plugin-a and plugin-b"
+    description = "Builds a bundle containing plugins"
 
-    archiveFileName.set("bundle.zip")
+    archiveFileName.set("plugins-bundle.zip")
     destinationDirectory.set(layout.buildDirectory.dir("bundle"))
 
     val pluginA = tasks.getByPath(":plugin-a:buildPlugin")
@@ -62,8 +72,16 @@ tasks.register<Zip>("buildBundle") {
 
     dependsOn(pluginA, pluginB)
 
-    from(zipTree(project(":plugin-a")
-        .tasks.named("buildPlugin").get().outputs.files.singleFile))
-    from(zipTree(project(":plugin-b")
-        .tasks.named("buildPlugin").get().outputs.files.singleFile))
+    from(
+        zipTree(
+            project(":plugin-a")
+                .tasks.named("buildPlugin").get().outputs.files.singleFile
+        )
+    )
+    from(
+        zipTree(
+            project(":plugin-b")
+                .tasks.named("buildPlugin").get().outputs.files.singleFile
+        )
+    )
 }

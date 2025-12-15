@@ -1,3 +1,3 @@
-rootProject.name = "felixutils"
+rootProject.name = "Idea Plugins"
 
-include("plugin-a", "plugin-b")
+include("plugin-a", "plugin-b", "config-deployer", "ankey-docker-runner")
