@@ -3,13 +3,18 @@ package io.github.uniclog.docker.runner.ui.generate
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBTextField
+import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.JBUI
 import io.github.uniclog.docker.runner.model.AnkeyComponent
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
 import io.github.uniclog.docker.runner.settings.AnkeySettings
 import io.github.uniclog.docker.runner.settings.Constants.ANKEY_VER_11
 import java.awt.Component
-import javax.swing.*
+import javax.swing.Action
+import javax.swing.BoxLayout
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
 
@@ -21,7 +26,7 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
     private val bpmnOpt = JBCheckBox("BPMN Service")
     private val demoOpt = JBCheckBox("Demo Data")
 
-    private val prefixField = JTextField(AnkeySettings.instance.getAnkeyPrefix())
+    private val prefixField = JBTextField(AnkeySettings.instance.getAnkeyPrefix())
 
     init {
         title = "Docker Runner Configuration"
@@ -69,19 +74,22 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
     }
 
     override fun createCenterPanel(): JComponent {
-        val panel = JPanel()
-        panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
-        panel.border = JBUI.Borders.empty(15)
-
-        panel.add(prefixField)
-
-        panel.add(header())
-        panel.add(Box.createVerticalStrut(12))
-        panel.add(coreGroup())
-        panel.add(Box.createVerticalStrut(10))
-        panel.add(optionalGroup())
-
-        return panel
+        return FormBuilder.createFormBuilder()
+            .addSeparator(12)
+            .addComponent(header())
+            .addSeparator(12)
+            .addComponent(coreGroup())
+            .addSeparator(10)
+            .addComponent(optionalGroup())
+            .addSeparator(10)
+            .addComponent(
+                group(
+                    title = "Ankey prefix",
+                    description = "Prefix added to the container name",
+                    components = listOf(prefixField)
+                )
+            )
+            .panel
     }
 
     private fun header(): JComponent =
@@ -112,7 +120,7 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
     private fun group(
         title: String,
         description: String,
-        components: List<JBCheckBox>
+        components: List<JComponent>
     ): JComponent =
         JPanel().apply {
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
