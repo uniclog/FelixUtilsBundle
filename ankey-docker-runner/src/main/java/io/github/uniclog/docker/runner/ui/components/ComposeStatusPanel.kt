@@ -1,0 +1,80 @@
+package io.github.uniclog.docker.runner.ui.components
+
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBLabel
+import io.github.uniclog.docker.runner.model.AnkeyPath
+import io.github.uniclog.docker.runner.service.AnkeyPathService
+import io.github.uniclog.docker.runner.service.DockerService
+import io.github.uniclog.docker.runner.ui.system.InfoDialog
+import io.github.uniclog.docker.runner.ui.ConfirmDialog
+import javax.swing.*
+
+class ComposeStatusPanel(
+    private val getPath: () -> AnkeyPath,
+    private val upAction: Action
+) {
+    val panel = JPanel()
+    private val statusLabel = JBLabel()
+
+    private val showButton = JButton("Show").apply { isEnabled = false }
+    private val openButton = JButton("Open").apply { isEnabled = false }
+    private val deleteButton = JButton("Delete").apply { isEnabled = false }
+
+    init {
+        panel.layout = BoxLayout(panel, BoxLayout.X_AXIS)
+        panel.add(showButton)
+        panel.add(openButton)
+        panel.add(deleteButton)
+        panel.add(Box.createHorizontalGlue())
+        panel.add(statusLabel)
+
+        showButton.addActionListener {
+            /// @todo проверить на пустой comboBox
+            InfoDialog(getPath()).show()
+        }
+        openButton.addActionListener {
+            /// @todo проверить на пустой comboBox
+            val path = getPath().getComposePath()
+
+            val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(path)
+                ?: return@addActionListener
+
+            val project = ProjectManager.getInstance().openProjects.firstOrNull()
+                ?: return@addActionListener
+
+            FileEditorManager.getInstance(project).openFile(virtualFile, true)
+        }
+        deleteButton.addActionListener {
+            val dialog = ConfirmDialog(
+                message = "Are you sure you want to delete this file?<br/>This action cannot be undone.",
+                okActionText = "Delete"
+            )
+
+            if (!dialog.showAndGet())
+                return@addActionListener
+
+            AnkeyPathService.deleteFile(getPath())
+            update()
+        }
+    }
+
+    fun update() {
+        val exists = DockerService.composeExists(getPath())
+        upAction.isEnabled = exists
+
+        if (exists) {
+            statusLabel.text = "Compose file exists!"
+            statusLabel.foreground = JBColor.GREEN
+        } else {
+            statusLabel.text = "Compose file not found!"
+            statusLabel.foreground = JBColor.RED
+        }
+
+        showButton.isEnabled = exists
+        openButton.isEnabled = exists
+        deleteButton.isEnabled = exists
+    }
+}

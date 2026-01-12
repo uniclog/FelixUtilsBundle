@@ -1,0 +1,1 @@
+FROM nexus.da.lan:8444/gis/opensearchnohttps:2.18.0

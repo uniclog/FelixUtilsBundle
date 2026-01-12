@@ -1,0 +1,3 @@
+FROM nexus.da.lan:8444/gis/openjdk-dcevm:11.0.15_1
+WORKDIR /opt/ankey
+ENTRYPOINT exec sh -c "chmod +x /opt/ankey/startup.sh && chmod +x /opt/ankey/run.sh && exec /opt/ankey/run.sh"

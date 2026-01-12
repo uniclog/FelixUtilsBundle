@@ -1,0 +1,1 @@
+FROM nexus.da.lan:8444/gis/kafka:3.8.1
