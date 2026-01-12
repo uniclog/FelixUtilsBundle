@@ -128,17 +128,19 @@ object ComposeFileGenerator {
                 .replace(Regex("[-_.]{2,}"), "-")
                 .trim('-', '_', '.')
 
+        fun dockerNameWithOffset(name: String) : String =
+            normalizeDockerName(name.lowercase() + if (offset == 0) "" else "-$offset")
+
         while (true) {
             val portsToCheck = basePorts.map { it + offset }
-            if (portsToCheck.all { !isPortUsed(it)
-                        || !dockerProjectExists(normalizeDockerName(configurationName.lowercase() + if (offset == 0) "" else "-$offset"))
+            if (portsToCheck.all { !isPortUsed(it) && !dockerProjectExists(dockerNameWithOffset(configurationName))
             }) {
                 break
             }
             offset++
         }
 
-        val num = normalizeDockerName(configurationName.lowercase() + if (offset == 0) "" else "-$offset")
+        val num = dockerNameWithOffset(configurationName)
 
         return Placeholders(
             num = if (num == "") "" else "-$num",
