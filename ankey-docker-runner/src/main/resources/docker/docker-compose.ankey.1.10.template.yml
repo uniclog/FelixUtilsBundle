@@ -1,0 +1,75 @@
+name: ankey${NUM}
+
+services:
+  ankey${NUM}:
+    container_name: ankey${NUM}
+    build:
+      context: ./docker
+      dockerfile: Dockerfile-ankey
+    volumes:
+      - "./ankey:/opt/ankey"
+    ports:
+      - "${PORT_HTTP}:8080"
+      - "${PORT_DEBUG}:5005"
+      - "${PORT_JMX}:9010"
+    environment:
+      ANKEYIDM_OPTS: "-Xmx1G -Xms1G -Xverify:none -XX:+AggressiveOpts -Djava.net.preferIPv4Stack=true -XX:+UseG1GC"
+      LOGGING_CONFIG: "-Dlogback.configurationFile=/opt/ankey/logger/logback.xml"
+      ANKEYIDM_ELASTIC_HOST: opensearch${NUM}
+      ANKEYIDM_ELASTIC_PORT: 9200
+      ANKEYIDM_PG_URL: postgres${NUM}:5432
+      ANKEYIDM_KAFKA_HOST: kafka${NUM}:9092
+      HARDWARE_ID: teamcity
+      JPDA_SUSPEND: n
+    depends_on:
+      opensearch${NUM}:
+        condition: service_started
+      postgres${NUM}:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "--header", "Accept: application/json", "--header", "X-Ankey-Username: ankey", "--header", "X-Ankey-Password: ankey", "http://localhost:${PORT_HTTP}/ankey/info/login"]
+      interval: 1m
+      timeout: 30s
+      retries: 10
+      start_period: 2m
+    networks:
+      - ankey-network
+
+  postgres${NUM}:
+    container_name: postgres${NUM}
+    build:
+      context: ./docker
+      dockerfile: Dockerfile-postgres
+    volumes:
+      - ./ankey/db/postgresql/scripts/aftercreateuser.sql:/docker-entrypoint-initdb.d/aftercreateuser.sql
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - "${PORT_POSTGRES}:5432"
+    environment:
+      POSTGRES_PASSWORD: ankey
+      POSTGRES_USER: ankey
+      POSTGRES_DB: ankey
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "ankey" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - ankey-network
+      
+  opensearch${NUM}:
+    container_name: opensearch${NUM}
+    build:
+      context: ./docker
+      dockerfile: Dockerfile-opensearch
+    ports:
+      - "${PORT_OPENSEARCH}:9200"
+      - "${PORT_OPENSEARCH_2}:9300"
+    environment:
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    networks:
+      - ankey-network
+
+networks:
+  ankey-network:
+    driver: bridge

@@ -1,0 +1,13 @@
+  ### OpenSearch Service
+  opensearch${NUM}:
+    container_name: opensearch${NUM}
+    build:
+      context: ./docker
+      dockerfile: Dockerfile-opensearch
+    ports:
+      - "${PORT_OPENSEARCH}:9200"
+      - "${PORT_OPENSEARCH_2}:9300"
+    environment:
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    networks:
+      - ankey-network
