@@ -12,7 +12,6 @@ import io.github.uniclog.docker.runner.ui.components.ComposeStatusPanel
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JComponent
-import javax.swing.JTextField
 
 class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
 
@@ -22,7 +21,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
         const val DOWN_EXIT_CODE = 1002
     }
 
-    private val prefixField = JTextField(AnkeySettings.instance.getAnkeyPrefix())
+    //private val prefixField = JTextField(AnkeySettings.instance.getAnkeyPrefix())
     //private val okAction = super.getOKAction()
 
     private val pathSelector = AnkeyPathComboBox(
@@ -30,7 +29,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
     )
 
     private val composeStatus = ComposeStatusPanel(
-        getPath = { pathSelector.selected() },
+        getAnkeyPath = { pathSelector.selected() },
         upAction = okAction
     )
 
@@ -72,20 +71,20 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
         AnkeySettings.instance.setSelectedPath(path)
     }
 
-   // override fun getOKAction(): Action {
-   //     okAction.apply { putValue(Action.NAME, "Run Docker") }
-   //     close(UP_EXIT_CODE)
-   //     return TODO("Provide the return value")
-   // }
+    // override fun getOKAction(): Action {
+    //     okAction.apply { putValue(Action.NAME, "Run Docker") }
+    //     close(UP_EXIT_CODE)
+    //     return TODO("Provide the return value")
+    // }
 
     override fun createCenterPanel(): JComponent {
         pathSelector.init(event.project)
 
         val generatePanel = ComposeGeneratePanel(
             getPath = { pathSelector.selected() },
-            prefix = { prefixField.text },
-            onGenerated = {
-                AnkeySettings.instance.setAnkeyPrefix(prefixField.text)
+            //prefix = { prefixField.text },
+            onGenerated = { prefix ->
+                AnkeySettings.instance.setAnkeyPrefix(prefix)
                 composeStatus.update()
             }
         )
@@ -96,7 +95,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
             .addLabeledComponent("Select ankey folder:", pathSelector.comboBox)
             .addSeparator()
             .addLabeledComponent("Docker compose:", generatePanel.panel)
-            .addLabeledComponent("Ankey prefix:", prefixField)
+            //.addLabeledComponent("Ankey prefix:", prefixField)
             .addLabeledComponent("", composeStatus.panel)
             .panel
     }
@@ -105,10 +104,8 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
         val selected = pathSelector.selected()
         // save
         AnkeySettings.instance.setSelectedPath(selected)
-        AnkeySettings.instance.setAnkeyPrefix(prefixField.text)
 
         return mapOf(
-            "prefix" to prefixField.text,
             "ankeyPath" to selected.absolutePath,
             "composePath" to selected.getComposePath()
         )

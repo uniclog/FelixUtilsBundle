@@ -1,8 +1,13 @@
-package io.github.uniclog.docker.runner.ui
+package io.github.uniclog.docker.runner.ui.dialog
 
 import com.intellij.openapi.ui.DialogWrapper
 import java.awt.Component
-import javax.swing.*
+import javax.swing.Action
+import javax.swing.BorderFactory
+import javax.swing.BoxLayout
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 class ConfirmDialog(val message: String, val okActionText: String) : DialogWrapper(true) {
 

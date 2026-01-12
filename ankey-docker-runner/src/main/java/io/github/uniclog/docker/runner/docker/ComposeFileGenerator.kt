@@ -13,7 +13,7 @@ import io.github.uniclog.docker.runner.settings.Constants.PORT_KAFKA_UI
 import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_HTTP
 import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_TRANSPORT
 import io.github.uniclog.docker.runner.settings.Constants.PORT_POSTGRES
-import io.github.uniclog.docker.runner.ui.system.AlertDialog
+import io.github.uniclog.docker.runner.ui.dialog.AlertDialog
 import java.io.File
 import java.net.ServerSocket
 

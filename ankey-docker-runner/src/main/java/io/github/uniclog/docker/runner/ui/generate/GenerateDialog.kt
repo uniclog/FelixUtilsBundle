@@ -6,6 +6,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import io.github.uniclog.docker.runner.model.AnkeyComponent
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
+import io.github.uniclog.docker.runner.settings.AnkeySettings
 import io.github.uniclog.docker.runner.settings.Constants.ANKEY_VER_11
 import java.awt.Component
 import javax.swing.*
@@ -20,11 +21,18 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
     private val bpmnOpt = JBCheckBox("BPMN Service")
     private val demoOpt = JBCheckBox("Demo Data")
 
+    private val prefixField = JTextField(AnkeySettings.instance.getAnkeyPrefix())
+
     init {
         title = "Docker Runner Configuration"
         initOptions()
         init()
     }
+
+    override fun getOKAction(): Action =
+        super.getOKAction().apply {
+            putValue(Action.NAME, "Generate")
+        }
 
     private fun initOptions() {
         coreOpt.apply {
@@ -64,6 +72,8 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
         val panel = JPanel()
         panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
         panel.border = JBUI.Borders.empty(15)
+
+        panel.add(prefixField)
 
         panel.add(header())
         panel.add(Box.createVerticalStrut(12))
@@ -121,11 +131,6 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
             }
         }
 
-    override fun getOKAction(): Action =
-        super.getOKAction().apply {
-            putValue(Action.NAME, "Generate")
-        }
-
     fun getSelectedOptions(): List<AnkeyComponentState> =
         listOf(
             AnkeyComponentState(AnkeyComponent.CORE, coreOpt.isSelected),
@@ -137,6 +142,8 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
             AnkeyComponentState(AnkeyComponent.NONE, demoOpt.isSelected),
         )
             .filter { it.isActivate }
+
+    fun getAnkeyPrefix(): String = prefixField.text
 }
 
 /*

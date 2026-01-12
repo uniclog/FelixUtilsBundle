@@ -1,4 +1,4 @@
-package io.github.uniclog.docker.runner.ui.system
+package io.github.uniclog.docker.runner.ui.dialog
 
 import com.intellij.openapi.ui.Messages
 

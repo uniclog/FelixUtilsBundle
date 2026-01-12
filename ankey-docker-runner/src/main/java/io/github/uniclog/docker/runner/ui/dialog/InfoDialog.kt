@@ -1,4 +1,4 @@
-package io.github.uniclog.docker.runner.ui.system
+package io.github.uniclog.docker.runner.ui.dialog
 
 import com.intellij.openapi.ui.DialogWrapper
 import io.github.uniclog.docker.runner.model.AnkeyPath
@@ -28,7 +28,7 @@ class InfoDialog(ankeyPath: AnkeyPath?) : DialogWrapper(true) {
     }
 
     init {
-        title = "Информация"
+        title = "Info"
         init()
     }
 

@@ -8,12 +8,12 @@ import com.intellij.ui.components.JBLabel
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.service.AnkeyPathService
 import io.github.uniclog.docker.runner.service.DockerService
-import io.github.uniclog.docker.runner.ui.system.InfoDialog
-import io.github.uniclog.docker.runner.ui.ConfirmDialog
+import io.github.uniclog.docker.runner.ui.dialog.ConfirmDialog
+import io.github.uniclog.docker.runner.ui.dialog.InfoDialog
 import javax.swing.*
 
 class ComposeStatusPanel(
-    private val getPath: () -> AnkeyPath,
+    private val getAnkeyPath: () -> AnkeyPath,
     private val upAction: Action
 ) {
     val panel = JPanel()
@@ -33,11 +33,11 @@ class ComposeStatusPanel(
 
         showButton.addActionListener {
             /// @todo проверить на пустой comboBox
-            InfoDialog(getPath()).show()
+            InfoDialog(getAnkeyPath()).show()
         }
         openButton.addActionListener {
             /// @todo проверить на пустой comboBox
-            val path = getPath().getComposePath()
+            val path = getAnkeyPath().getComposePath()
 
             val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(path)
                 ?: return@addActionListener
@@ -56,13 +56,13 @@ class ComposeStatusPanel(
             if (!dialog.showAndGet())
                 return@addActionListener
 
-            AnkeyPathService.deleteFile(getPath())
+            AnkeyPathService.deleteFile(getAnkeyPath())
             update()
         }
     }
 
     fun update() {
-        val exists = DockerService.composeExists(getPath())
+        val exists = DockerService.composeExists(path = getAnkeyPath())
         upAction.isEnabled = exists
 
         if (exists) {

@@ -7,14 +7,14 @@ import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.service.DockerService
 import io.github.uniclog.docker.runner.settings.Constants.ANKEY_VER_10
 import io.github.uniclog.docker.runner.settings.Constants.ANKEY_VER_11
-import io.github.uniclog.docker.runner.ui.ConfirmDialog
+import io.github.uniclog.docker.runner.ui.dialog.ConfirmDialog
 import io.github.uniclog.docker.runner.ui.generate.GenerateDialog
 import javax.swing.*
 
 class ComposeGeneratePanel(
     private val getPath: () -> AnkeyPath,
-    private val prefix: () -> String,
-    private val onGenerated: () -> Unit
+    //private val prefix: () -> String,
+    private val onGenerated: (String) -> Unit
 ) {
     val panel = JPanel()
     private val infoLabel = JBLabel("Compose is generated!").apply {
@@ -32,10 +32,11 @@ class ComposeGeneratePanel(
 
                 /// choice configuration
                 val coreVersion = if (prepareVer.contains(ANKEY_VER_10)) ANKEY_VER_10 else ANKEY_VER_11
-                val constructor = GenerateDialog(coreVersion = coreVersion)
-                if (!constructor.showAndGet())
+                val generateDialog = GenerateDialog(coreVersion = coreVersion)
+                if (!generateDialog.showAndGet())
                     return@addActionListener
-                val services = constructor.getSelectedOptions()
+                val services = generateDialog.getSelectedOptions()
+                val prefix = generateDialog.getAnkeyPrefix()
 
                 /// confirm
                 val dialog = ConfirmDialog(
@@ -46,11 +47,11 @@ class ComposeGeneratePanel(
                     return@addActionListener
 
                 /// добавить выборку сервисов
-                DockerService.generateCompose(getPath(), prefix(), services)
+                DockerService.generateCompose(getPath(), prefix, services)
                     ?: return@addActionListener
 
                 showGenerated()
-                onGenerated()
+                onGenerated(prefix)
             }
         }
 
