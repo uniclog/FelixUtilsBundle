@@ -3,6 +3,9 @@ package io.github.uniclog.docker.runner.docker
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -15,108 +18,119 @@ import java.io.File
 
 object DockerComposeRunner {
 
-    fun downCompose(project: Project, composeFilePath: String) {
+    fun downCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) =
+        runCompose(
+            project = project,
+            composeFilePath = composeFilePath,
+            title = "Docker runner",
+            startMessage = "Stopping docker compose...",
+            command = listOf(
+                "docker", "compose",
+                "-f", composeFilePath,
+                "down", "--rmi", "local", "-v", "--remove-orphans"
+            ),
+            asyncTask = asyncTask
+        )
+
+    fun upCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) =
+        runCompose(
+            project = project,
+            composeFilePath = composeFilePath,
+            title = "Docker runner",
+            startMessage = "Starting docker compose...",
+            command = listOf(
+                "docker", "compose",
+                "-f", composeFilePath,
+                "up", "-d", "--build", "--quiet-pull"
+            ),
+            asyncTask = asyncTask
+        )
+
+    fun stopCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) =
+        runCompose(
+            project = project,
+            composeFilePath = composeFilePath,
+            title = "Docker runner",
+            startMessage = "Stopping docker compose...",
+            command = listOf(
+                "docker", "compose",
+                "-f", composeFilePath,
+                "stop"
+            ),
+            asyncTask = asyncTask
+        )
+
+    private fun runCompose(
+        project: Project,
+        composeFilePath: String,
+        title: String,
+        startMessage: String,
+        command: List<String>,
+        asyncTask: Boolean
+    ) {
+        val runTask: (ConsoleView?) -> Unit = { console ->
+            ProgressManager.getInstance().run(
+                object : Task.Backgroundable(project, title, true) {
+
+                    private var exitCode: Int = -1
+
+                    override fun run(indicator: ProgressIndicator) {
+                        indicator.isIndeterminate = true
+                        indicator.text = startMessage
+
+                        val process = ProcessBuilder(command)
+                            .redirectErrorStream(true)
+                            .start()
+
+                        process.inputStream.bufferedReader().forEachLine {
+                            if (indicator.isCanceled) {
+                                process.destroy()
+                                return@forEachLine
+                            }
+                            console?.let { c -> printColored(c, "$it\n") }
+                        }
+
+                        exitCode = process.waitFor()
+                    }
+
+                    override fun onSuccess() {
+                        console?.let {
+                            printColored(it, "\nFinished with exit code $exitCode\n")
+                        } ?: notify(
+                            project,
+                            "Docker Compose finished",
+                            "Exit code: $exitCode",
+                            NotificationType.INFORMATION
+                        )
+                    }
+
+                    override fun onThrowable(error: Throwable) {
+                        notify(
+                            project,
+                            "Docker Compose error",
+                            error.message ?: "Unknown error",
+                            NotificationType.ERROR
+                        )
+                    }
+                }
+            )
+        }
+
+        if (asyncTask) {
+            runTask(null)
+            return
+        }
+
         val toolWindow = ToolWindowManager.getInstance(project)
             .getToolWindow("Docker Runner") ?: return
 
         toolWindow.activate {
             val console = getOrCreateDockerConsole(project, composeFilePath)
             console.clear()
-
-            printColored(console, "Stopping docker compose...\n")
-
-            ProgressManager.getInstance().run(
-                object : Task.Backgroundable(project, "Docker runner", true) {
-                    override fun run(indicator: ProgressIndicator) {
-                        val process = ProcessBuilder(
-                            "docker", "compose",
-                            "-f", composeFilePath,
-                            "down",
-                            "--rmi", "local",
-                            "-v", "--remove-orphans"
-                        )
-                            .redirectErrorStream(true)
-                            .start()
-
-                        process.inputStream.bufferedReader().forEachLine {
-                            printColored(console, "$it\n")
-                        }
-
-                        val exitCode = process.waitFor()
-                        printColored(console, "\nFinished with exit code $exitCode\n")
-                    }
-                }
-            )
+            printColored(console, "$startMessage\n")
+            runTask(console)
         }
     }
-
-    fun upCompose(project: Project, composeFilePath: String) {
-
-        val toolWindow = ToolWindowManager.getInstance(project)
-            .getToolWindow("Docker Runner") ?: return
-
-        toolWindow.activate {
-            val console = getOrCreateDockerConsole(project, composeFilePath)
-            console.clear()
-
-            printColored(console, "Starting docker compose...\n")
-
-            ProgressManager.getInstance().run(
-                object : Task.Backgroundable(project, "Docker runner", true) {
-                    override fun run(indicator: ProgressIndicator) {
-                        val process = ProcessBuilder(
-                            "docker", "compose",
-                            "-f", composeFilePath,
-                            "up", "-d", "--build", "--quiet-pull"
-                        )
-                            .redirectErrorStream(true)
-                            .start()
-
-                        process.inputStream.bufferedReader().forEachLine {
-                            printColored(console, "$it\n")
-                        }
-
-                        val exitCode = process.waitFor()
-                        printColored(console, "\nFinished with exit code $exitCode\n")
-                    }
-                }
-            )
-        }
-    }
-
-    fun stopCompose(project: Project, composeFilePath: String) {
-        val toolWindow = ToolWindowManager.getInstance(project)
-            .getToolWindow("Docker Runner") ?: return
-
-        toolWindow.activate {
-            val console = getOrCreateDockerConsole(project, composeFilePath)
-            console.clear()
-
-            printColored(console, "Stopping docker compose...\n")
-
-            ProgressManager.getInstance().run(
-                object : Task.Backgroundable(project, "Docker runner", true) {
-                    override fun run(indicator: ProgressIndicator) {
-                        val process = ProcessBuilder(
-                            "docker", "compose",
-                            "-f", composeFilePath,
-                            "stop"
-                        )
-                            .redirectErrorStream(true)
-                            .start()
-
-                        process.inputStream.bufferedReader().forEachLine {
-                            printColored(console, "$it\n")
-                        }
-
-                        val exitCode = process.waitFor()
-                        printColored(console, "\nFinished with exit code $exitCode\n")
-                    }
-                }
-            )
-        }
-    }
-
 
     fun getOrCreateDockerConsole(project: Project, composeFilePath: String): ConsoleView {
         val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Docker Runner")
@@ -172,5 +186,18 @@ object DockerComposeRunner {
             console.print(line, type)
         }
     }
+
+    private fun notify(
+        project: Project,
+        title: String,
+        content: String,
+        type: NotificationType
+    ) {
+        Notifications.Bus.notify(
+            Notification("Docker Runner", title, content, type),
+            project
+        )
+    }
+
 }
 

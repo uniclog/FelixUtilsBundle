@@ -1,5 +1,7 @@
 package io.github.uniclog.docker.runner.ui.components
 
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import io.github.uniclog.docker.runner.docker.ComposeFileGenerator
@@ -12,8 +14,8 @@ import io.github.uniclog.docker.runner.ui.generate.GenerateDialog
 import javax.swing.*
 
 class ComposeGeneratePanel(
-    private val getPath: () -> AnkeyPath,
-    //private val prefix: () -> String,
+    private val project: Project?,
+    private val ankeyPath: AnkeyPath,
     private val onGenerated: (String) -> Unit
 ) {
     val panel = JPanel()
@@ -27,12 +29,13 @@ class ComposeGeneratePanel(
 
         val button = JButton("Generate Compose File").apply {
             addActionListener {
-                val prepareVer = ComposeFileGenerator.getComposeTemplateName(getPath())
+                val prepareVer = ComposeFileGenerator.getComposeTemplateName(ankeyPath)
                     ?: return@addActionListener
 
                 /// choice configuration
                 val coreVersion = if (prepareVer.contains(ANKEY_VER_10)) ANKEY_VER_10 else ANKEY_VER_11
                 val generateDialog = GenerateDialog(coreVersion = coreVersion)
+                // show gen dialog
                 if (!generateDialog.showAndGet())
                     return@addActionListener
                 val services = generateDialog.getSelectedOptions()
@@ -46,8 +49,12 @@ class ComposeGeneratePanel(
                 if (!dialog.showAndGet())
                     return@addActionListener
 
-                /// добавить выборку сервисов
-                DockerService.generateCompose(getPath(), prefix, services)
+                /// down docker if exists
+                if (DockerService.composeExists(ankeyPath) && project != null) {
+                    DockerService.downProcBackground(project, ankeyPath.getComposePath())
+                }
+                /// generate compose file
+                DockerService.generateCompose(ankeyPath, prefix, services)
                     ?: return@addActionListener
 
                 showGenerated()

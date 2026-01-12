@@ -81,8 +81,8 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
         pathSelector.init(event.project)
 
         val generatePanel = ComposeGeneratePanel(
-            getPath = { pathSelector.selected() },
-            //prefix = { prefixField.text },
+            project = event.project,
+            ankeyPath = pathSelector.selected(),
             onGenerated = { prefix ->
                 AnkeySettings.instance.setAnkeyPrefix(prefix)
                 composeStatus.update()

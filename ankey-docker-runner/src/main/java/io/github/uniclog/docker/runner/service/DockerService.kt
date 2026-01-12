@@ -1,5 +1,8 @@
 package io.github.uniclog.docker.runner.service
 
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import io.github.uniclog.docker.runner.docker.ComposeFileGenerator
 import io.github.uniclog.docker.runner.docker.DockerComposeRunner
@@ -39,6 +42,17 @@ object DockerService {
         }
 
         DockerComposeRunner.downCompose(project, composePath)
+        return Result.success(Unit)
+    }
+
+    fun downProcBackground(project: Project, composePath: String): Result<Unit> {
+        if (composePath.isBlank()) {
+            return Result.failure(
+                IllegalArgumentException("Compose file path is not specified")
+            )
+        }
+
+        DockerComposeRunner.downCompose(project, composePath, true)
         return Result.success(Unit)
     }
 
