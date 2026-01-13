@@ -199,5 +199,45 @@ object DockerComposeRunner {
         )
     }
 
+    fun getComposeProjectName(composePath: String): String? {
+        File(composePath).useLines { lines ->
+            lines.forEach {
+                val trimmed = it.trim()
+                if (trimmed.startsWith("name:")) {
+                    return trimmed.removePrefix("name:").trim()
+                }
+            }
+        }
+        return null
+    }
+
+    fun hasRunningComposeContainers(projectName: String?): Boolean {
+        if (projectName == null)
+            return false
+
+        val process = ProcessBuilder(
+            "docker", "ps",
+            "--filter", "label=com.docker.compose.project=$projectName",
+            "--format", "{{.Names}}"
+        ).start()
+
+        val output = process.inputStream.bufferedReader().readText()
+        process.waitFor()
+
+        return output.isNotBlank()
+    }
+
+    fun dockerProjectExists(projectName: String): Boolean {
+        val process = ProcessBuilder(
+            "docker", "network", "ls",
+            "--filter", "name=^${projectName}_",
+            "--format", "{{.Name}}"
+        )
+            .redirectErrorStream(true)
+            .start()
+        val output = process.inputStream.bufferedReader().readText().trim()
+        process.waitFor()
+        return output.isNotEmpty()
+    }
 }
 

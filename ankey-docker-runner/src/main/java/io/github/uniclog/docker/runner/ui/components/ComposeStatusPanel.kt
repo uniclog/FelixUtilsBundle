@@ -2,9 +2,12 @@ package io.github.uniclog.docker.runner.ui.components
 
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import io.github.uniclog.docker.runner.docker.DockerComposeRunner.getComposeProjectName
+import io.github.uniclog.docker.runner.docker.DockerComposeRunner.hasRunningComposeContainers
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.service.AnkeyPathService
 import io.github.uniclog.docker.runner.service.DockerService
@@ -55,6 +58,18 @@ class ComposeStatusPanel(
 
             if (!dialog.showAndGet())
                 return@addActionListener
+
+            if (DockerService.composeExists(getAnkeyPath())) {
+                val projectName = getComposeProjectName(getAnkeyPath().getComposePath())
+                if (hasRunningComposeContainers(projectName)) {
+                    Messages.showErrorDialog(
+                        "Docker containers for this compose file are running and must be stopped before generating a new compose file.",
+                        "Generate Docker Compose Error"
+                    )
+                    return@addActionListener
+                }
+                //DockerService.downProcBackground(project, ankeyPath.getComposePath())
+            }
 
             AnkeyPathService.deleteFile(getAnkeyPath())
             update()

@@ -1,5 +1,6 @@
 package io.github.uniclog.docker.runner.docker
 
+import io.github.uniclog.docker.runner.docker.DockerComposeRunner.dockerProjectExists
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.model.Placeholders
@@ -97,18 +98,6 @@ object ComposeFileGenerator {
             } catch (_: Exception) {
                 true
             }
-        fun dockerProjectExists(projectName: String): Boolean {
-            val process = ProcessBuilder(
-                "docker", "network", "ls",
-                "--filter", "name=^${projectName}_",
-                "--format", "{{.Name}}"
-            )
-                .redirectErrorStream(true)
-                .start()
-            val output = process.inputStream.bufferedReader().readText().trim()
-            process.waitFor()
-            return output.isNotEmpty()
-        }
 
         val basePorts = listOf(
             PORT_HTTP,
@@ -128,13 +117,14 @@ object ComposeFileGenerator {
                 .replace(Regex("[-_.]{2,}"), "-")
                 .trim('-', '_', '.')
 
-        fun dockerNameWithOffset(name: String) : String =
+        fun dockerNameWithOffset(name: String): String =
             normalizeDockerName(name.lowercase() + if (offset == 0) "" else "-$offset")
 
         while (true) {
             val portsToCheck = basePorts.map { it + offset }
-            if (portsToCheck.all { !isPortUsed(it) && !dockerProjectExists(dockerNameWithOffset(configurationName))
-            }) {
+            if (portsToCheck.all {
+                    !isPortUsed(it) && !dockerProjectExists(dockerNameWithOffset(configurationName))
+                }) {
                 break
             }
             offset++

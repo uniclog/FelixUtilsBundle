@@ -1,10 +1,11 @@
 package io.github.uniclog.docker.runner.ui.components
 
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import io.github.uniclog.docker.runner.docker.ComposeFileGenerator
+import io.github.uniclog.docker.runner.docker.DockerComposeRunner.getComposeProjectName
+import io.github.uniclog.docker.runner.docker.DockerComposeRunner.hasRunningComposeContainers
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.service.DockerService
 import io.github.uniclog.docker.runner.settings.Constants.ANKEY_VER_10
@@ -14,8 +15,7 @@ import io.github.uniclog.docker.runner.ui.generate.GenerateDialog
 import javax.swing.*
 
 class ComposeGeneratePanel(
-    private val project: Project?,
-    private val ankeyPath: AnkeyPath,
+    private val getAnkeyPath: () -> AnkeyPath,
     private val onGenerated: (String) -> Unit
 ) {
     val panel = JPanel()
@@ -29,6 +29,8 @@ class ComposeGeneratePanel(
 
         val button = JButton("Generate Compose File").apply {
             addActionListener {
+                val ankeyPath = getAnkeyPath()
+
                 val prepareVer = ComposeFileGenerator.getComposeTemplateName(ankeyPath)
                     ?: return@addActionListener
 
@@ -50,8 +52,16 @@ class ComposeGeneratePanel(
                     return@addActionListener
 
                 /// down docker if exists
-                if (DockerService.composeExists(ankeyPath) && project != null) {
-                    DockerService.downProcBackground(project, ankeyPath.getComposePath())
+                if (DockerService.composeExists(ankeyPath)) {
+                    val projectName = getComposeProjectName(ankeyPath.getComposePath())
+                    if (hasRunningComposeContainers(projectName)) {
+                        Messages.showErrorDialog(
+                            "Docker containers for this compose file are running and must be stopped before generating a new compose file.",
+                            "Generate Docker Compose Error"
+                        )
+                        return@addActionListener
+                    }
+                    //DockerService.downProcBackground(project, ankeyPath.getComposePath())
                 }
                 /// generate compose file
                 DockerService.generateCompose(ankeyPath, prefix, services)
@@ -72,6 +82,7 @@ class ComposeGeneratePanel(
         val timer = Timer(2000) {
             infoLabel.isVisible = false
         }
+        timer.isRepeats = false
         timer.start()
     }
 }
