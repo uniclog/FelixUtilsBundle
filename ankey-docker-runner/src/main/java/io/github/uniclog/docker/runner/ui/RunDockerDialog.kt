@@ -39,6 +39,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
             putValue(DEFAULT_ACTION, true)
             putValue(SMALL_ICON, AllIcons.Actions.Execute)
         }
+
         override fun doAction(e: ActionEvent?) {
             close(UP_EXIT_CODE)
         }
@@ -48,6 +49,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
         init {
             putValue(SMALL_ICON, AllIcons.Actions.Pause)
         }
+
         override fun doAction(e: ActionEvent?) {
             close(STOP_EXIT_CODE)
         }
@@ -57,6 +59,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
         init {
             putValue(SMALL_ICON, AllIcons.General.Warning)
         }
+
         override fun doAction(e: ActionEvent?) {
             close(DOWN_EXIT_CODE)
         }
@@ -92,8 +95,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
         pathSelector.init(event.project)
 
         val generatePanel = ComposeGeneratePanel(
-            project = event.project,
-            ankeyPath = pathSelector.selected(),
+            getAnkeyPath = { pathSelector.selected() },
             onGenerated = { prefix ->
                 AnkeySettings.instance.setAnkeyPrefix(prefix)
                 composeStatus.update()
