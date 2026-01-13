@@ -1,5 +1,6 @@
 package io.github.uniclog.docker.runner.ui
 
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.util.ui.FormBuilder
@@ -34,18 +35,28 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
     )
 
     private val customUpAction = object : DialogWrapperAction("Run Docker") {
+        init {
+            putValue(DEFAULT_ACTION, true)
+            putValue(SMALL_ICON, AllIcons.Actions.Execute)
+        }
         override fun doAction(e: ActionEvent?) {
             close(UP_EXIT_CODE)
         }
     }
 
     private val customStopAction = object : DialogWrapperAction("Stop Docker") {
+        init {
+            putValue(SMALL_ICON, AllIcons.Actions.Pause)
+        }
         override fun doAction(e: ActionEvent?) {
             close(STOP_EXIT_CODE)
         }
     }
 
     private val customDownAction = object : DialogWrapperAction("Down Docker") {
+        init {
+            putValue(SMALL_ICON, AllIcons.General.Warning)
+        }
         override fun doAction(e: ActionEvent?) {
             close(DOWN_EXIT_CODE)
         }
