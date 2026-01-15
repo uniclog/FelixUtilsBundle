@@ -133,7 +133,7 @@ object ComposeFileGenerator {
         val num = dockerNameWithOffset(configurationName)
 
         return Placeholders(
-            num = if (num == "") "" else "-$num",
+            num = if (num == "" && configurationName == "") "" else "-$num",
 
             portHttp = (8080 + offset).toString(),
             portDebug = (5005 + offset).toString(),
