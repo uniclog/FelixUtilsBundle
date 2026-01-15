@@ -6,6 +6,7 @@ import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.model.Placeholders
 import io.github.uniclog.docker.runner.settings.Constants.ANKEY_VER_10
 import io.github.uniclog.docker.runner.settings.Constants.ANKEY_VER_11
+import io.github.uniclog.docker.runner.settings.Constants.COMPOSE_FILE_TEMPLATE
 import io.github.uniclog.docker.runner.settings.Constants.PORT_DEBUG
 import io.github.uniclog.docker.runner.settings.Constants.PORT_HTTP
 import io.github.uniclog.docker.runner.settings.Constants.PORT_JMX
@@ -51,15 +52,16 @@ object ComposeFileGenerator {
     fun copyDockerfiles(basePath: String) {
         File("$basePath/docker").mkdirs()
 
-        listOf(
-            "docker/Dockerfile-ankey",
-            "docker/Dockerfile-kafka",
-            "docker/Dockerfile-opensearch",
-            "docker/Dockerfile-postgres",
-            "ankey/run.sh",
-            "ankey/backup.sh"
-        ).forEach { name ->
-            javaClass.classLoader.getResourceAsStream(name)
+        mapOf(
+            "docker/Dockerfile-ankey" to "docker/Dockerfile-ankey",
+            "docker/Dockerfile-kafka" to "docker/Dockerfile-kafka",
+            "docker/Dockerfile-opensearch" to "docker/Dockerfile-opensearch",
+            "docker/Dockerfile-postgres" to "docker/Dockerfile-postgres",
+            "ankey/run.sh" to "ankey/run.sh",
+            "ankey/backup.sh" to "ankey/backup.sh",
+            "bpmn/init2.sql" to "ankey/db/postgresql/scripts/init2.sql"
+        ).forEach { (source, target) ->
+            javaClass.classLoader.getResourceAsStream(source)
                 ?.use { input ->
                     File(basePath, name).outputStream().use { output ->
                         input.copyTo(output)
@@ -150,14 +152,13 @@ object ComposeFileGenerator {
     }
 
     fun buildComposeTemplate(selectedServices: List<AnkeyComponentState>): String {
-        val template = "docker/docker-compose.%s.template.yml"
-        val base = loadComposeTemplate(template.format("base"))
-        val network = loadComposeTemplate(template.format("network"))
+        val base = loadComposeTemplate(COMPOSE_FILE_TEMPLATE.format("base"))
+        val network = loadComposeTemplate(COMPOSE_FILE_TEMPLATE.format("network"))
 
         val services = selectedServices
             .filter { it.component.fileName.isNotBlank() }
             .joinToString("\n\n")
-            { loadComposeTemplate(template.format(it.component.fileName)) }
+            { loadComposeTemplate(COMPOSE_FILE_TEMPLATE.format(it.component.fileName)) }
 
         val compose = buildString {
             append(base.trimEnd())

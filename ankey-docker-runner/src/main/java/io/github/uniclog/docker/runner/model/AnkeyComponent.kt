@@ -1,7 +1,7 @@
 package io.github.uniclog.docker.runner.model
 
 enum class AnkeyComponent(val fileName: String) {
-    CORE("ankey"),
+    CORE("core"),
     POSTGRES("postgres"),
     OPENSEARCH("opensearch"),
     KAFKA("kafka"),

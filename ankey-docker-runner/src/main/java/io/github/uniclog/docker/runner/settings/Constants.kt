@@ -4,6 +4,7 @@ object Constants {
     const val ANKEY_VER_11 = "1.11"
     const val ANKEY_VER_10 = "1.10"
     const val COMPOSE_FILE_NAME = "docker-compose.ankey.yml"
+    const val COMPOSE_FILE_TEMPLATE = "docker/docker-compose.%s.yml"
 
     const val PORT_HTTP = 8080
     const val PORT_DEBUG = 5005
