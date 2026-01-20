@@ -18,7 +18,7 @@ import java.io.File
 
 object DockerComposeRunner {
 
-    fun downCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) =
+    fun downCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) {
         runCompose(
             project = project,
             composeFilePath = composeFilePath,
@@ -31,6 +31,8 @@ object DockerComposeRunner {
             ),
             asyncTask = asyncTask
         )
+        ComposeFileGenerator.deleteDockerFilesFiles(composeFilePath.removeSuffix(COMPOSE_FILE_NAME))
+    }
 
     fun upCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) =
         runCompose(

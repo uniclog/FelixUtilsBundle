@@ -1,11 +1,13 @@
 package io.github.uniclog.docker.runner.docker
 
 import io.github.uniclog.docker.runner.docker.DockerComposeRunner.dockerProjectExists
+import io.github.uniclog.docker.runner.model.AnkeyComponent
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.model.Placeholders
 import io.github.uniclog.docker.runner.settings.Constants.ANKEY_VER_10
 import io.github.uniclog.docker.runner.settings.Constants.ANKEY_VER_11
+import io.github.uniclog.docker.runner.settings.Constants.COMPOSE_FILE_NAME
 import io.github.uniclog.docker.runner.settings.Constants.COMPOSE_FILE_TEMPLATE
 import io.github.uniclog.docker.runner.settings.Constants.PORT_DEBUG
 import io.github.uniclog.docker.runner.settings.Constants.PORT_HTTP
@@ -26,6 +28,9 @@ object ComposeFileGenerator {
         ankeyPrefix: String,
         services: List<AnkeyComponentState> = listOf()
     ): String? {
+        // del old data
+        deleteDockerFilesFiles(ankeyPath.getComposeBasePath().removeSuffix(COMPOSE_FILE_NAME))
+
         val placeholders = buildPlaceholders(ankeyPrefix)
 
         /// null check
@@ -36,7 +41,7 @@ object ComposeFileGenerator {
         val compose = replacePlaceholders(template, placeholders)
 
         File(ankeyPath.getComposePath()).writeText(compose)
-        copyDockerfiles(ankeyPath.getComposeBasePath())
+        copyDockerfiles(ankeyPath.getComposeBasePath(), services)
 
         return placeholders.num
     }
@@ -49,25 +54,39 @@ object ComposeFileGenerator {
         return "docker/docker-compose.ankey.${composeVersion}.template.yml"
     }
 
-    fun copyDockerfiles(basePath: String) {
+    fun copyDockerfiles(basePath: String, services: List<AnkeyComponentState>) {
         File("$basePath/docker").mkdirs()
 
-        mapOf(
+        val paths = mutableMapOf(
             "docker/Dockerfile-ankey" to "docker/Dockerfile-ankey",
             "docker/Dockerfile-kafka" to "docker/Dockerfile-kafka",
             "docker/Dockerfile-opensearch" to "docker/Dockerfile-opensearch",
             "docker/Dockerfile-postgres" to "docker/Dockerfile-postgres",
             "ankey/run.sh" to "ankey/run.sh",
-            "ankey/backup.sh" to "ankey/backup.sh",
-            "bpmn/init2.sql" to "ankey/db/postgresql/scripts/init2.sql"
-        ).forEach { (source, target) ->
+            "ankey/backup.sh" to "ankey/backup.sh"
+        )
+        // @todo Разделить по сервисам
+        if (services.any { s -> s.component == AnkeyComponent.BPMN }) {
+            paths["docker/Dockerfile-postgres"] = "docker/Dockerfile-postgres"
+            paths["bpmn/init2.sql"] = "ankey/db/postgresql/scripts/init2.sql"
+        }
+        paths.forEach { (source, target) ->
             javaClass.classLoader.getResourceAsStream(source)
                 ?.use { input ->
-                    File(basePath, name).outputStream().use { output ->
+                    File(basePath, target).outputStream().use { output ->
                         input.copyTo(output)
                     }
                 }
         }
+    }
+
+    fun deleteDockerFilesFiles(basePath: String) {
+        File("$basePath/docker").deleteRecursively()
+        File("$basePath/pgdata").deleteRecursively()
+        File("$basePath/ankey/run.sh").delete()
+        File("$basePath/ankey/backup.sh").delete()
+        File("$basePath/ankey/db/postgresql/scripts/init2.sql").delete()
+        File("$basePath/$COMPOSE_FILE_NAME").delete()
     }
 
     private fun getVersion(ankeyPath: String?): String? {
