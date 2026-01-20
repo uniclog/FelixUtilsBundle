@@ -42,30 +42,30 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
     private fun initOptions() {
         coreOpt.apply {
             isSelected = true
-            isEnabled = false
+            //isEnabled = false
         }
         pgsqlOpt.apply {
             isSelected = true
-            isEnabled = false
+            //isEnabled = false
         }
         osrchOpt.apply {
             isSelected = true
-            isEnabled = false
+            //isEnabled = false
         }
 
         if (coreVersion == ANKEY_VER_11) {
             kafkaOpt.apply {
                 isSelected = true
-                isEnabled = false
+                //isEnabled = false
             }
         }
 
         /** TBD **/
-        bpmnOpt.apply {
+        /*bpmnOpt.apply {
             isSelected = false
             isEnabled = false
             toolTipText = "TBD"
-        }
+        }*/
         demoOpt.apply {
             isSelected = false
             isEnabled = false

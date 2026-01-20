@@ -1,0 +1,55 @@
+  ### BPMN service
+  ankey-bpmn${NUM}:
+    container_name: ankey-bpmn${NUM}
+    build:
+      context: ./docker
+      dockerfile: Dockerfile-bpmn
+    ports:
+      - "8081:8081"
+      - "5007:5005"
+    environment:
+      DATABASE_HOST: postgres${NUM}
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ankey_bpmn
+      DATABASE_USER: ankey_bpmn
+      DATABASE_PASSWORD: ankey_bpmn
+
+      MAIL_SMTP_PORT: 2525
+      MAIL_SMTP_HOST: localhost
+      MAIL_USER: ankeynoreply
+      MAIL_SMTP_SSL: "false"
+      MAIL_SMTP_AUTH: "true"
+      MAIL_PASSWORD: Gazprom*123
+
+      ANKEYIDM_URL: http://ankey${NUM}:8080/ankey
+      ANKEYIDM_HEADER_USERNAME: ankey
+      ANKEYIDM_HEADER_PASSWORD: ankey
+
+      CAMUNDA_USER: camunda
+      CAMUNDA_PASSWORD: camunda
+
+      BPMN_KAFKA_HOST: kafka${NUM}:9092
+      BPMN_KAFKA_POLL_INTERVAL: 300000
+      BPMN_KAFKA_POLL_RECORDS: 50
+      BPMN_KAFKA_LIMIT_RATE: 10
+      BPMN_KAFKA_DELAY_ELEMENTS: 500
+
+      BPMN_SPRING_CONN_TIME_OUT: 60000
+      BPMN_SPRING_POOL_SIZE: 20
+      BPMN_SPRING_INIT_POOL_SIZE: 10
+
+      BPMN_KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      BPMN_KAFKA_SASL_MECHANISM: SCRAM-SHA-256
+      BPMN_KAFKA_SASL_JAAS_CONFIG: >
+        org.apache.kafka.common.security.scram.ScramLoginModule required
+        username='messageLogin'
+        password='messagePassword';
+      BPMN_KAFKA_TRUSTSTORE_PASSWORD: changeit
+
+    depends_on:
+      postgres${NUM}:
+        condition: service_healthy
+    restart: unless-stopped
+
+    networks:
+      - ankey-network
