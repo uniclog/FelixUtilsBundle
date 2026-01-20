@@ -67,7 +67,7 @@ object ComposeFileGenerator {
         )
         // @todo Разделить по сервисам
         if (services.any { s -> s.component == AnkeyComponent.BPMN }) {
-            paths["docker/Dockerfile-postgres"] = "docker/Dockerfile-postgres"
+            paths["docker/Dockerfile-bpmn"] = "docker/Dockerfile-bpmn"
             paths["bpmn/init2.sql"] = "ankey/db/postgresql/scripts/init2.sql"
         }
         paths.forEach { (source, target) ->
@@ -85,6 +85,7 @@ object ComposeFileGenerator {
         File("$basePath/pgdata").deleteRecursively()
         File("$basePath/ankey/run.sh").delete()
         File("$basePath/ankey/backup.sh").delete()
+        File("$basePath/ankey/felix-cache").delete()
         File("$basePath/ankey/db/postgresql/scripts/init2.sql").delete()
         File("$basePath/$COMPOSE_FILE_NAME").delete()
     }
