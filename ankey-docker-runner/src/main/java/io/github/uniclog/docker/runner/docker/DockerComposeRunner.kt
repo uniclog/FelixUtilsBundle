@@ -30,8 +30,9 @@ object DockerComposeRunner {
                 "down", "--rmi", "local", "-v", "--remove-orphans"
             ),
             asyncTask = asyncTask
-        )
-        ComposeFileGenerator.deleteDockerFilesFiles(composeFilePath.removeSuffix(COMPOSE_FILE_NAME))
+        ) {
+                ComposeFileGenerator.deleteDockerFilesFiles(composeFilePath.removeSuffix(COMPOSE_FILE_NAME))
+        }
     }
 
     fun upCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) =
@@ -43,10 +44,12 @@ object DockerComposeRunner {
             command = listOf(
                 "docker", "compose",
                 "-f", composeFilePath,
-                "up", "-d", "--build", "--quiet-pull"
+                "up", "-d", "--build", "--no-cache"
             ),
             asyncTask = asyncTask
-        )
+        ) {
+
+        }
 
     fun stopCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) =
         runCompose(
@@ -60,7 +63,9 @@ object DockerComposeRunner {
                 "stop"
             ),
             asyncTask = asyncTask
-        )
+        ) {
+
+        }
 
     private fun runCompose(
         project: Project,
@@ -68,7 +73,8 @@ object DockerComposeRunner {
         title: String,
         startMessage: String,
         command: List<String>,
-        asyncTask: Boolean
+        asyncTask: Boolean,
+        onSuccessAction: () -> Unit
     ) {
         val runTask: (ConsoleView?) -> Unit = { console ->
             ProgressManager.getInstance().run(
@@ -98,6 +104,7 @@ object DockerComposeRunner {
                     override fun onSuccess() {
                         console?.let {
                             printColored(it, "\nFinished with exit code $exitCode\n")
+                            onSuccessAction.invoke()
                         } ?: notify(
                             project,
                             "Docker Compose finished",

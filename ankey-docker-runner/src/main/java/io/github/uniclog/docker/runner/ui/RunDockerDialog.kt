@@ -3,6 +3,7 @@ package io.github.uniclog.docker.runner.ui
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.FormBuilder
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.service.AnkeyPathService
@@ -94,10 +95,13 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
     override fun createCenterPanel(): JComponent {
         pathSelector.init(event.project)
 
+        val seed = JBLabel("")
+
         val generatePanel = ComposeGeneratePanel(
             getAnkeyPath = { pathSelector.selected() },
-            onGenerated = { prefix ->
+            onGenerated = { (prefix, seedText): Pair<String, String> ->
                 AnkeySettings.instance.setAnkeyPrefix(prefix)
+                seed.text = "Seed: $seedText"
                 composeStatus.update()
             }
         )
@@ -109,7 +113,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
             .addSeparator()
             .addLabeledComponent("Docker compose:", generatePanel.panel)
             //.addLabeledComponent("Ankey prefix:", prefixField)
-            .addLabeledComponent("", composeStatus.panel)
+            .addLabeledComponent(seed, composeStatus.panel)
             .panel
     }
 

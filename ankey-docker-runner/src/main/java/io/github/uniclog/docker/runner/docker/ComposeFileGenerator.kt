@@ -34,7 +34,7 @@ object ComposeFileGenerator {
         val placeholders = buildPlaceholders(ankeyPrefix)
 
         /// null check
-        if (services.isEmpty() || getVersion(ankeyPath.absolutePath) == null)
+        if (services.isEmpty() || getVersion(ankeyPath) == null)
             return null
 
         val template = buildComposeTemplate(services)
@@ -46,29 +46,34 @@ object ComposeFileGenerator {
         return placeholders.num
     }
 
-    fun getComposeTemplateName(ankeyPath: AnkeyPath): String? {
-        val version = getVersion(ankeyPath.absolutePath)
-            ?: return null
-
-        val composeVersion = if (version < ANKEY_VER_11) ANKEY_VER_10 else ANKEY_VER_11
-        return "docker/docker-compose.ankey.${composeVersion}.template.yml"
-    }
-
     fun copyDockerfiles(basePath: String, services: List<AnkeyComponentState>) {
         File("$basePath/docker").mkdirs()
 
         val paths = mutableMapOf(
-            "docker/Dockerfile-ankey" to "docker/Dockerfile-ankey",
-            "docker/Dockerfile-kafka" to "docker/Dockerfile-kafka",
-            "docker/Dockerfile-opensearch" to "docker/Dockerfile-opensearch",
-            "docker/Dockerfile-postgres" to "docker/Dockerfile-postgres",
             "ankey/run.sh" to "ankey/run.sh",
             "ankey/backup.sh" to "ankey/backup.sh"
         )
-        // @todo Разделить по сервисам
-        if (services.any { s -> s.component == AnkeyComponent.BPMN }) {
-            paths["docker/Dockerfile-bpmn"] = "docker/Dockerfile-bpmn"
-            paths["bpmn/init2.sql"] = "ankey/db/postgresql/scripts/init2.sql"
+        // @todo добавить ожидание добавленных сервисов
+        services.forEach {
+            when (it.component) {
+                AnkeyComponent.CORE -> {
+                    paths["docker/Dockerfile-ankey"] = "docker/Dockerfile-ankey"
+                }
+                AnkeyComponent.POSTGRES -> {
+                    paths["docker/Dockerfile-postgres"] = "docker/Dockerfile-postgres"
+                }
+                AnkeyComponent.OPENSEARCH -> {
+                    paths["docker/Dockerfile-opensearch"] = "docker/Dockerfile-opensearch"
+                }
+                AnkeyComponent.KAFKA -> {
+                    paths["docker/Dockerfile-kafka"] = "docker/Dockerfile-kafka"
+                }
+                AnkeyComponent.BPMN -> {
+                    paths["docker/Dockerfile-bpmn"] = "docker/Dockerfile-bpmn"
+                    paths["bpmn/init2.sql"] = "ankey/db/postgresql/scripts/init2.sql"
+                }
+                else -> {}
+            }
         }
         paths.forEach { (source, target) ->
             javaClass.classLoader.getResourceAsStream(source)
@@ -85,14 +90,13 @@ object ComposeFileGenerator {
         File("$basePath/pgdata").deleteRecursively()
         File("$basePath/ankey/run.sh").delete()
         File("$basePath/ankey/backup.sh").delete()
-        File("$basePath/ankey/felix-cache").delete()
+        File("$basePath/ankey/felix-cache").deleteRecursively()
         File("$basePath/ankey/db/postgresql/scripts/init2.sql").delete()
         File("$basePath/$COMPOSE_FILE_NAME").delete()
     }
 
-    private fun getVersion(ankeyPath: String?): String? {
-        if (ankeyPath == null)
-            return ""
+    fun getVersion(path: AnkeyPath): String? {
+        val ankeyPath = path.absolutePath
 
         val versionFile = File("$ankeyPath/conf/version.json")
         if (!versionFile.exists()) {

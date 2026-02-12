@@ -20,8 +20,6 @@
       HARDWARE_ID: teamcity
       JPDA_SUSPEND: n
     depends_on:
-      kafka${NUM}:
-        condition: service_started
       opensearch${NUM}:
         condition: service_started
       postgres${NUM}:

@@ -7,8 +7,8 @@
     volumes:
     #  - ./ankey/db/postgresql/scripts/:/docker-entrypoint-initdb.d/
       - ./ankey/db/postgresql/scripts/aftercreateuser.sql:/docker-entrypoint-initdb.d/aftercreateuser.sql
-      - ./ankey/db/postgresql/scripts/init2.sql:/docker-entrypoint-initdb.d/init2.sql
-      - ./pgdata:/var/lib/postgresql/data
+    #  - ./ankey/db/postgresql/scripts/init2.sql:/docker-entrypoint-initdb.d/init2.sql
+    #  - ./pgdata:/var/lib/postgresql/data
     ports:
       - "${PORT_POSTGRES}:5432"
     environment:

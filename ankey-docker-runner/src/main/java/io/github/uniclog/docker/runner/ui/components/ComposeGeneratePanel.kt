@@ -16,7 +16,7 @@ import javax.swing.*
 
 class ComposeGeneratePanel(
     private val getAnkeyPath: () -> AnkeyPath,
-    private val onGenerated: (String) -> Unit
+    private val onGenerated: (Pair<String, String>) -> Unit
 ) {
     val panel = JPanel()
     private val infoLabel = JBLabel("Compose is generated!").apply {
@@ -31,11 +31,11 @@ class ComposeGeneratePanel(
             addActionListener {
                 val ankeyPath = getAnkeyPath()
 
-                val prepareVer = ComposeFileGenerator.getComposeTemplateName(ankeyPath)
+                val coreVersion = ComposeFileGenerator.getVersion(ankeyPath)
                     ?: return@addActionListener
 
                 /// choice configuration
-                val coreVersion = if (prepareVer.contains(ANKEY_VER_10)) ANKEY_VER_10 else ANKEY_VER_11
+                //val coreVersion = if (prepareVer.contains(ANKEY_VER_10)) ANKEY_VER_10 else ANKEY_VER_11
                 val generateDialog = GenerateDialog(coreVersion = coreVersion)
                 // show gen dialog
                 if (!generateDialog.showAndGet())
@@ -63,12 +63,21 @@ class ComposeGeneratePanel(
                     }
                     //DockerService.downProcBackground(project, ankeyPath.getComposePath())
                 }
+
+                fun generateSeed(length: Int = 4): String {
+                    val chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+                    return (1..length)
+                        .map { chars.random() }
+                        .joinToString("")
+                }
+                val seed = generateSeed(4)
+
                 /// generate compose file
-                DockerService.generateCompose(ankeyPath, prefix, services)
+                DockerService.generateCompose(ankeyPath, prefix + '_' + seed, services)
                     ?: return@addActionListener
 
                 showGenerated()
-                onGenerated(prefix)
+                onGenerated(Pair(prefix, seed))
             }
         }
 

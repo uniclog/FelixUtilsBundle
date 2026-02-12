@@ -6,6 +6,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import io.github.uniclog.docker.runner.docker.ComposeFileGenerator
 import io.github.uniclog.docker.runner.docker.DockerComposeRunner.getComposeProjectName
 import io.github.uniclog.docker.runner.docker.DockerComposeRunner.hasRunningComposeContainers
 import io.github.uniclog.docker.runner.model.AnkeyPath
@@ -70,8 +71,8 @@ class ComposeStatusPanel(
                 }
                 //DockerService.downProcBackground(project, ankeyPath.getComposePath())
             }
-
-            AnkeyPathService.deleteFile(getAnkeyPath())
+            ComposeFileGenerator.deleteDockerFilesFiles(getAnkeyPath().getComposeBasePath())
+            //AnkeyPathService.deleteFile(getAnkeyPath())
             update()
         }
     }

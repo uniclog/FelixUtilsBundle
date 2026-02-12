@@ -1,7 +1,7 @@
 <idea-plugin>
-    <id>plugin-b</id>
-    <name>PluginB</name>
-    <vendor>Me</vendor>
+    <id>docker-runner-plugin</id>
+    <name>DockerRunnerPlugin</name>
+    <vendor>uniclog</vendor>
 
     <!--
     <applicationListeners>
