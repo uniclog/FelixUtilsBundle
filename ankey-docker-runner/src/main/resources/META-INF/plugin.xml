@@ -27,13 +27,5 @@
                 description="Run custom plugin logic">
             <add-to-group group-id="MainToolbarRight" anchor="last"/>
         </action>
-
-        <action
-                id="ShowTextAction"
-                class="ShowTextAction"
-                text="Показать окно"
-                description="Показать информационное окно с текстом">
-            <add-to-group group-id="ToolsMenu" anchor="last"/>
-        </action>
     </actions>
 </idea-plugin>

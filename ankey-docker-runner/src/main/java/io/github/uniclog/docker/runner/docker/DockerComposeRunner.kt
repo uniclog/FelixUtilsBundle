@@ -200,7 +200,11 @@ object DockerComposeRunner {
         }
 
         val toolWindow = ToolWindowManager.getInstance(project)
-            .getToolWindow("Docker Runner") ?: return
+            .getToolWindow("Docker Runner")
+        if (toolWindow == null) {
+            runTask(null)
+            return
+        }
 
         toolWindow.activate {
             val console = getOrCreateDockerConsole(project, composeFilePath)
@@ -295,29 +299,37 @@ object DockerComposeRunner {
         if (projectName == null)
             return false
 
-        val process = ProcessBuilder(
-            "docker", "ps",
-            "--filter", "label=com.docker.compose.project=$projectName",
-            "--format", "{{.Names}}"
-        ).start()
+        return try {
+            val process = ProcessBuilder(
+                "docker", "ps",
+                "--filter", "label=com.docker.compose.project=$projectName",
+                "--format", "{{.Names}}"
+            ).start()
 
-        val output = process.inputStream.bufferedReader().readText()
-        process.waitFor()
+            val output = process.inputStream.bufferedReader().readText()
+            process.waitFor()
 
-        return output.isNotBlank()
+            output.isNotBlank()
+        } catch (_: Exception) {
+            false
+        }
     }
 
     fun dockerProjectExists(projectName: String): Boolean {
-        val process = ProcessBuilder(
-            "docker", "network", "ls",
-            "--filter", "name=^${projectName}_",
-            "--format", "{{.Name}}"
-        )
-            .redirectErrorStream(true)
-            .start()
-        val output = process.inputStream.bufferedReader().readText().trim()
-        process.waitFor()
-        return output.isNotEmpty()
+        return try {
+            val process = ProcessBuilder(
+                "docker", "network", "ls",
+                "--filter", "name=^${projectName}_",
+                "--format", "{{.Name}}"
+            )
+                .redirectErrorStream(true)
+                .start()
+            val output = process.inputStream.bufferedReader().readText().trim()
+            process.waitFor()
+            output.isNotEmpty()
+        } catch (_: Exception) {
+            false
+        }
     }
 }
 

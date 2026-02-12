@@ -30,14 +30,14 @@ object ComposeFileGenerator {
         ankeyPrefix: String,
         services: List<AnkeyComponentState> = listOf()
     ): String? {
-        // del old data
+        if (services.isEmpty() || getVersion(ankeyPath) == null) {
+            return null
+        }
+
+        // delete old data only after input validation
         deleteDockerFilesFiles(ankeyPath.getComposeBasePath().removeSuffix(COMPOSE_FILE_NAME))
 
         val placeholders = buildPlaceholders(ankeyPrefix)
-
-        /// null check
-        if (services.isEmpty() || getVersion(ankeyPath) == null)
-            return null
 
         val template = buildComposeTemplate(services)
         val compose = replacePlaceholders(template, placeholders)
