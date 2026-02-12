@@ -15,6 +15,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.ContentFactory
 import io.github.uniclog.docker.runner.settings.Constants.COMPOSE_FILE_NAME
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 object DockerComposeRunner {
 
@@ -46,22 +47,42 @@ object DockerComposeRunner {
         composeFilePath: String,
         asyncTask: Boolean = false,
         onFinished: (Int) -> Unit = {}
-    ) =
+    ) {
+        val startedUpStep = AtomicBoolean(false)
         runCompose(
             project = project,
             composeFilePath = composeFilePath,
             title = "Docker runner",
-            startMessage = "Starting docker compose...",
+            startMessage = "Building docker images (no cache)...",
             command = listOf(
                 "docker", "compose",
                 "-f", composeFilePath,
-                "up", "-d", "--build", "--no-cache"
+                "build", "--no-cache"
             ),
             asyncTask = asyncTask,
-            onFinished = onFinished
+            onFinished = { exitCode ->
+                if (!startedUpStep.get()) {
+                    onFinished(exitCode)
+                }
+            }
         ) {
-
+            startedUpStep.set(true)
+            runCompose(
+                project = project,
+                composeFilePath = composeFilePath,
+                title = "Docker runner",
+                startMessage = "Starting docker compose...",
+                command = listOf(
+                    "docker", "compose",
+                    "-f", composeFilePath,
+                    "up", "-d"
+                ),
+                asyncTask = asyncTask,
+                onFinished = onFinished,
+                clearConsole = false
+            ) {}
         }
+    }
 
     fun stopCompose(
         project: Project,
@@ -93,6 +114,7 @@ object DockerComposeRunner {
         command: List<String>,
         asyncTask: Boolean,
         onFinished: (Int) -> Unit,
+        clearConsole: Boolean = true,
         onSuccessAction: () -> Unit
     ) {
         val runTask: (ConsoleView?) -> Unit = { console ->
@@ -160,7 +182,9 @@ object DockerComposeRunner {
 
         toolWindow.activate {
             val console = getOrCreateDockerConsole(project, composeFilePath)
-            console.clear()
+            if (clearConsole) {
+                console.clear()
+            }
             printColored(console, "$startMessage\n")
             runTask(console)
         }
