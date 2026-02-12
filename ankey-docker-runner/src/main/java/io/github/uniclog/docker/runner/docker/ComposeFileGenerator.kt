@@ -14,6 +14,8 @@ import io.github.uniclog.docker.runner.settings.Constants.PORT_HTTP
 import io.github.uniclog.docker.runner.settings.Constants.PORT_JMX
 import io.github.uniclog.docker.runner.settings.Constants.PORT_KAFKA
 import io.github.uniclog.docker.runner.settings.Constants.PORT_KAFKA_UI
+import io.github.uniclog.docker.runner.settings.Constants.PORT_BPMN_DEBUG
+import io.github.uniclog.docker.runner.settings.Constants.PORT_BPMN_HTTP
 import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_HTTP
 import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_TRANSPORT
 import io.github.uniclog.docker.runner.settings.Constants.PORT_POSTGRES
@@ -139,6 +141,8 @@ object ComposeFileGenerator {
             PORT_KAFKA,
             PORT_KAFKA_UI,
             PORT_POSTGRES,
+            PORT_BPMN_HTTP,
+            PORT_BPMN_DEBUG,
             PORT_OPENSEARCH_HTTP,
             PORT_OPENSEARCH_TRANSPORT
         )
@@ -174,6 +178,8 @@ object ComposeFileGenerator {
 
             portKafka = (PORT_KAFKA + offset).toString(),
             portKafkaUi = (PORT_KAFKA_UI + offset).toString(),
+            portBpmnHttp = (PORT_BPMN_HTTP + offset).toString(),
+            portBpmnDebug = (PORT_BPMN_DEBUG + offset).toString(),
 
             portPostgres = (PORT_POSTGRES + offset).toString(),
 

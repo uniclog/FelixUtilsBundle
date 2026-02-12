@@ -5,8 +5,8 @@
       context: ./docker
       dockerfile: Dockerfile-bpmn
     ports:
-      - "8081:8081"
-      - "5007:5005"
+      - "${PORT_BPMN_HTTP}:8081"
+      - "${PORT_BPMN_DEBUG}:5005"
     environment:
       DATABASE_HOST: postgres${NUM}
       DATABASE_PORT: 5432

@@ -25,7 +25,7 @@
       postgres${NUM}:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "--header", "Accept: application/json", "--header", "X-Ankey-Username: ankey", "--header", "X-Ankey-Password: ankey", "http://localhost:${PORT_HTTP}/ankey/info/login" ]
+      test: [ "CMD", "curl", "-f", "--header", "Accept: application/json", "--header", "X-Ankey-Username: ankey", "--header", "X-Ankey-Password: ankey", "http://localhost:8080/ankey/info/login" ]
       interval: 1m
       timeout: 30s
       retries: 10

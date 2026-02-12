@@ -5,6 +5,8 @@ import io.github.uniclog.docker.runner.settings.Constants.PORT_HTTP
 import io.github.uniclog.docker.runner.settings.Constants.PORT_JMX
 import io.github.uniclog.docker.runner.settings.Constants.PORT_KAFKA
 import io.github.uniclog.docker.runner.settings.Constants.PORT_KAFKA_UI
+import io.github.uniclog.docker.runner.settings.Constants.PORT_BPMN_DEBUG
+import io.github.uniclog.docker.runner.settings.Constants.PORT_BPMN_HTTP
 import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_HTTP
 import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_TRANSPORT
 import io.github.uniclog.docker.runner.settings.Constants.PORT_POSTGRES
@@ -17,6 +19,8 @@ data class Placeholders(
     var portPostgres: String = "$PORT_POSTGRES",
     var portKafka: String = "$PORT_KAFKA",
     var portKafkaUi: String = "$PORT_KAFKA_UI",
+    var portBpmnHttp: String = "$PORT_BPMN_HTTP",
+    var portBpmnDebug: String = "$PORT_BPMN_DEBUG",
     var portOpensearch: String = "$PORT_OPENSEARCH_HTTP",
     var portOpensearch2: String = "$PORT_OPENSEARCH_TRANSPORT",
 ) {
@@ -28,6 +32,8 @@ data class Placeholders(
         "PORT_POSTGRES" to portPostgres,
         "PORT_KAFKA" to portKafka,
         "PORT_KAFKA_UI" to portKafkaUi,
+        "PORT_BPMN_HTTP" to portBpmnHttp,
+        "PORT_BPMN_DEBUG" to portBpmnDebug,
         "PORT_OPENSEARCH" to portOpensearch,
         "PORT_OPENSEARCH_2" to portOpensearch2,
     )

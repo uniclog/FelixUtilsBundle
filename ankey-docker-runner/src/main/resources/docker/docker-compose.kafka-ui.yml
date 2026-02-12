@@ -6,11 +6,8 @@
       - "${PORT_KAFKA_UI}:8080"
     environment:
       DYNAMIC_CONFIG_ENABLED: "true"
-      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka${NUM}:${PORT_KAFKA}
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka${NUM}:9092
       KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
-      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: SCRAM-SHA-256
-      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: >-
-        org.apache.kafka.common.security.scram.ScramLoginModule required username="messageLogin" password="messagePassword";
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
     networks:
       - ankey-network
