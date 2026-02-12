@@ -57,7 +57,7 @@ object DockerComposeRunner {
             command = listOf(
                 "docker", "compose",
                 "-f", composeFilePath,
-                "build", "--no-cache"
+                "build", "--no-cache", "--quiet"
             ),
             asyncTask = asyncTask,
             onFinished = { exitCode ->
@@ -99,6 +99,28 @@ object DockerComposeRunner {
                 "docker", "compose",
                 "-f", composeFilePath,
                 "stop"
+            ),
+            asyncTask = asyncTask,
+            onFinished = onFinished
+        ) {
+
+        }
+
+    fun restartCompose(
+        project: Project,
+        composeFilePath: String,
+        asyncTask: Boolean = false,
+        onFinished: (Int) -> Unit = {}
+    ) =
+        runCompose(
+            project = project,
+            composeFilePath = composeFilePath,
+            title = "Docker runner",
+            startMessage = "Restarting docker compose...",
+            command = listOf(
+                "docker", "compose",
+                "-f", composeFilePath,
+                "restart"
             ),
             asyncTask = asyncTask,
             onFinished = onFinished

@@ -101,7 +101,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
             getAnkeyPath = { pathSelector.selected() },
             onGenerated = { (prefix, seedText): Pair<String, String> ->
                 AnkeySettings.instance.setAnkeyPrefix(prefix)
-                seed.text = "Seed: $seedText"
+                seed.text = if (seedText.isBlank()) "" else "Seed: $seedText"
                 composeStatus.update()
             }
         )

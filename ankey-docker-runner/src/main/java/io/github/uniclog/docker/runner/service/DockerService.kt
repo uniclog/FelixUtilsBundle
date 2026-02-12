@@ -3,6 +3,8 @@ package io.github.uniclog.docker.runner.service
 import com.intellij.openapi.project.Project
 import io.github.uniclog.docker.runner.docker.ComposeFileGenerator
 import io.github.uniclog.docker.runner.docker.DockerComposeRunner
+import io.github.uniclog.docker.runner.docker.DockerComposeRunner.getComposeProjectName
+import io.github.uniclog.docker.runner.docker.DockerComposeRunner.hasRunningComposeContainers
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import java.io.File
@@ -39,8 +41,17 @@ object DockerService {
         }
 
         val future = CompletableFuture<Result<Unit>>()
-        DockerComposeRunner.upCompose(project, composePath) { exitCode ->
-            future.complete(resultFromExitCode(exitCode))
+        val projectName = getComposeProjectName(composePath)
+        val hasRunningContainers = hasRunningComposeContainers(projectName)
+
+        if (hasRunningContainers) {
+            DockerComposeRunner.restartCompose(project, composePath) { exitCode ->
+                future.complete(resultFromExitCode(exitCode))
+            }
+        } else {
+            DockerComposeRunner.upCompose(project, composePath) { exitCode ->
+                future.complete(resultFromExitCode(exitCode))
+            }
         }
         return future
     }

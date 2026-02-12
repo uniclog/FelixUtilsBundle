@@ -64,20 +64,12 @@ class ComposeGeneratePanel(
                     //DockerService.downProcBackground(project, ankeyPath.getComposePath())
                 }
 
-                fun generateSeed(length: Int = 4): String {
-                    val chars = "abcdefghijklmnopqrstuvwxyz0123456789"
-                    return (1..length)
-                        .map { chars.random() }
-                        .joinToString("")
-                }
-                val seed = generateSeed(4)
-
                 /// generate compose file
-                DockerService.generateCompose(ankeyPath, prefix + '_' + seed, services)
+                DockerService.generateCompose(ankeyPath, prefix, services)
                     ?: return@addActionListener
 
                 showGenerated()
-                onGenerated(Pair(prefix, seed))
+                onGenerated(Pair(prefix, ""))
             }
         }
 
