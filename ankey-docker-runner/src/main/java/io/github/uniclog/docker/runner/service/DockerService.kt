@@ -1,59 +1,87 @@
 package io.github.uniclog.docker.runner.service
 
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import io.github.uniclog.docker.runner.docker.ComposeFileGenerator
 import io.github.uniclog.docker.runner.docker.DockerComposeRunner
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import java.io.File
+import java.util.concurrent.CompletableFuture
 
 object DockerService {
 
-    fun up(project: Project, composePath: String): Result<Unit> {
+    private fun validateComposePath(composePath: String): Result<Unit> {
         if (composePath.isBlank()) {
             return Result.failure(
                 IllegalArgumentException("Compose file path is not specified")
             )
         }
-
-        DockerComposeRunner.upCompose(project, composePath)
+        if (!File(composePath).exists()) {
+            return Result.failure(
+                IllegalArgumentException("Compose file not found: $composePath")
+            )
+        }
         return Result.success(Unit)
     }
 
-    fun stop(project: Project, composePath: String): Result<Unit> {
-        if (composePath.isBlank()) {
-            return Result.failure(
-                IllegalArgumentException("Compose file path is not specified")
-            )
+    private fun resultFromExitCode(exitCode: Int): Result<Unit> {
+        return if (exitCode == 0) {
+            Result.success(Unit)
+        } else {
+            Result.failure(IllegalStateException("Docker compose finished with exit code $exitCode"))
         }
-
-        DockerComposeRunner.stopCompose(project, composePath)
-        return Result.success(Unit)
     }
 
-    fun down(project: Project, composePath: String): Result<Unit> {
-        if (composePath.isBlank()) {
-            return Result.failure(
-                IllegalArgumentException("Compose file path is not specified")
-            )
+    fun up(project: Project, composePath: String): CompletableFuture<Result<Unit>> {
+        val precheck = validateComposePath(composePath)
+        if (precheck.isFailure) {
+            return CompletableFuture.completedFuture(precheck)
         }
 
-        DockerComposeRunner.downCompose(project, composePath)
-        return Result.success(Unit)
+        val future = CompletableFuture<Result<Unit>>()
+        DockerComposeRunner.upCompose(project, composePath) { exitCode ->
+            future.complete(resultFromExitCode(exitCode))
+        }
+        return future
     }
 
-    fun downProcBackground(project: Project, composePath: String): Result<Unit> {
-        if (composePath.isBlank()) {
-            return Result.failure(
-                IllegalArgumentException("Compose file path is not specified")
-            )
+    fun stop(project: Project, composePath: String): CompletableFuture<Result<Unit>> {
+        val precheck = validateComposePath(composePath)
+        if (precheck.isFailure) {
+            return CompletableFuture.completedFuture(precheck)
         }
 
-        DockerComposeRunner.downCompose(project, composePath, true)
-        return Result.success(Unit)
+        val future = CompletableFuture<Result<Unit>>()
+        DockerComposeRunner.stopCompose(project, composePath) { exitCode ->
+            future.complete(resultFromExitCode(exitCode))
+        }
+        return future
+    }
+
+    fun down(project: Project, composePath: String): CompletableFuture<Result<Unit>> {
+        val precheck = validateComposePath(composePath)
+        if (precheck.isFailure) {
+            return CompletableFuture.completedFuture(precheck)
+        }
+
+        val future = CompletableFuture<Result<Unit>>()
+        DockerComposeRunner.downCompose(project, composePath) { exitCode ->
+            future.complete(resultFromExitCode(exitCode))
+        }
+        return future
+    }
+
+    fun downProcBackground(project: Project, composePath: String): CompletableFuture<Result<Unit>> {
+        val precheck = validateComposePath(composePath)
+        if (precheck.isFailure) {
+            return CompletableFuture.completedFuture(precheck)
+        }
+
+        val future = CompletableFuture<Result<Unit>>()
+        DockerComposeRunner.downCompose(project, composePath, true) { exitCode ->
+            future.complete(resultFromExitCode(exitCode))
+        }
+        return future
     }
 
     fun composeExists(path: AnkeyPath): Boolean {

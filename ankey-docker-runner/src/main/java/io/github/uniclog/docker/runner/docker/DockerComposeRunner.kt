@@ -18,7 +18,12 @@ import java.io.File
 
 object DockerComposeRunner {
 
-    fun downCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) {
+    fun downCompose(
+        project: Project,
+        composeFilePath: String,
+        asyncTask: Boolean = false,
+        onFinished: (Int) -> Unit = {}
+    ) {
         runCompose(
             project = project,
             composeFilePath = composeFilePath,
@@ -29,13 +34,19 @@ object DockerComposeRunner {
                 "-f", composeFilePath,
                 "down", "--rmi", "local", "-v", "--remove-orphans"
             ),
-            asyncTask = asyncTask
+            asyncTask = asyncTask,
+            onFinished = onFinished
         ) {
                 ComposeFileGenerator.deleteDockerFilesFiles(composeFilePath.removeSuffix(COMPOSE_FILE_NAME))
         }
     }
 
-    fun upCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) =
+    fun upCompose(
+        project: Project,
+        composeFilePath: String,
+        asyncTask: Boolean = false,
+        onFinished: (Int) -> Unit = {}
+    ) =
         runCompose(
             project = project,
             composeFilePath = composeFilePath,
@@ -46,12 +57,18 @@ object DockerComposeRunner {
                 "-f", composeFilePath,
                 "up", "-d", "--build", "--no-cache"
             ),
-            asyncTask = asyncTask
+            asyncTask = asyncTask,
+            onFinished = onFinished
         ) {
 
         }
 
-    fun stopCompose(project: Project, composeFilePath: String, asyncTask: Boolean = false) =
+    fun stopCompose(
+        project: Project,
+        composeFilePath: String,
+        asyncTask: Boolean = false,
+        onFinished: (Int) -> Unit = {}
+    ) =
         runCompose(
             project = project,
             composeFilePath = composeFilePath,
@@ -62,7 +79,8 @@ object DockerComposeRunner {
                 "-f", composeFilePath,
                 "stop"
             ),
-            asyncTask = asyncTask
+            asyncTask = asyncTask,
+            onFinished = onFinished
         ) {
 
         }
@@ -74,6 +92,7 @@ object DockerComposeRunner {
         startMessage: String,
         command: List<String>,
         asyncTask: Boolean,
+        onFinished: (Int) -> Unit,
         onSuccessAction: () -> Unit
     ) {
         val runTask: (ConsoleView?) -> Unit = { console ->
@@ -102,15 +121,20 @@ object DockerComposeRunner {
                     }
 
                     override fun onSuccess() {
+                        val ok = exitCode == 0
                         console?.let {
                             printColored(it, "\nFinished with exit code $exitCode\n")
-                            onSuccessAction.invoke()
-                        } ?: notify(
+                        }
+                        notify(
                             project,
-                            "Docker Compose finished",
+                            if (ok) "Docker Compose finished" else "Docker Compose failed",
                             "Exit code: $exitCode",
-                            NotificationType.INFORMATION
+                            if (ok) NotificationType.INFORMATION else NotificationType.ERROR
                         )
+                        if (ok) {
+                            onSuccessAction.invoke()
+                        }
+                        onFinished(exitCode)
                     }
 
                     override fun onThrowable(error: Throwable) {
@@ -120,6 +144,7 @@ object DockerComposeRunner {
                             error.message ?: "Unknown error",
                             NotificationType.ERROR
                         )
+                        onFinished(-1)
                     }
                 }
             )

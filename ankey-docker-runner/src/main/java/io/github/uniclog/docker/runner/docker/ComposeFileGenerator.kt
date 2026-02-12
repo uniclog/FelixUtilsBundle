@@ -109,9 +109,16 @@ object ComposeFileGenerator {
 
         val versionText = versionFile.readText()
 
-        val version = Regex(""""version"\s*:\s*"([^"]+)"""")
-            .find(versionText)!!
-            .groupValues[1]
+        val versionMatch = Regex(""""version"\s*:\s*"([^"]+)"""")
+            .find(versionText)
+        if (versionMatch == null) {
+            AlertDialog.showErrorDialog(
+                "Docker Runner",
+                "Invalid version file format: \n${ankeyPath}/conf/version.json"
+            )
+            return null
+        }
+        val version = versionMatch.groupValues[1]
         return version.takeWhile { it.isDigit() || it == '.' }
     }
 
@@ -161,17 +168,17 @@ object ComposeFileGenerator {
         return Placeholders(
             num = if (num == "" && configurationName == "") "" else "-$num",
 
-            portHttp = (8080 + offset).toString(),
-            portDebug = (5005 + offset).toString(),
-            portJmx = (9010 + offset).toString(),
+            portHttp = (PORT_HTTP + offset).toString(),
+            portDebug = (PORT_DEBUG + offset).toString(),
+            portJmx = (PORT_JMX + offset).toString(),
 
-            portKafka = (9092 + offset).toString(),
-            portKafkaUi = (7080 + offset).toString(),
+            portKafka = (PORT_KAFKA + offset).toString(),
+            portKafkaUi = (PORT_KAFKA_UI + offset).toString(),
 
-            portPostgres = (5432 + offset).toString(),
+            portPostgres = (PORT_POSTGRES + offset).toString(),
 
-            portOpensearch = (9200 + offset).toString(),
-            portOpensearch2 = (9300 + offset).toString(),
+            portOpensearch = (PORT_OPENSEARCH_HTTP + offset).toString(),
+            portOpensearch2 = (PORT_OPENSEARCH_TRANSPORT + offset).toString(),
         )
     }
 
