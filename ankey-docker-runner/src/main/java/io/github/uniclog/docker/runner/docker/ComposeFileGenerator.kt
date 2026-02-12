@@ -80,7 +80,9 @@ object ComposeFileGenerator {
         paths.forEach { (source, target) ->
             javaClass.classLoader.getResourceAsStream(source)
                 ?.use { input ->
-                    File(basePath, target).outputStream().use { output ->
+                    val targetFile = File(basePath, target)
+                    targetFile.parentFile?.mkdirs()
+                    targetFile.outputStream().use { output ->
                         input.copyTo(output)
                     }
                 }
