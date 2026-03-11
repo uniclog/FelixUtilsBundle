@@ -15,6 +15,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.ContentFactory
 import io.github.uniclog.docker.runner.settings.Constants.COMPOSE_FILE_NAME
 import java.io.File
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 object DockerComposeRunner {
@@ -324,10 +325,17 @@ object DockerComposeRunner {
             )
                 .redirectErrorStream(true)
                 .start()
+
+            val finished = process.waitFor(5, TimeUnit.SECONDS)
+            if (!finished) {
+                process.destroyForcibly()
+                return false
+            }
+
             val output = process.inputStream.bufferedReader().readText().trim()
-            process.waitFor()
+
             output.isNotEmpty()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             false
         }
     }

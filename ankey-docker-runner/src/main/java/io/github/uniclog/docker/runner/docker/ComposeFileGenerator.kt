@@ -21,7 +21,10 @@ import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_TRANSP
 import io.github.uniclog.docker.runner.settings.Constants.PORT_POSTGRES
 import io.github.uniclog.docker.runner.ui.dialog.AlertDialog
 import java.io.File
-import java.net.ServerSocket
+import java.net.BindException
+import java.net.InetSocketAddress
+import java.net.StandardSocketOptions
+import java.nio.channels.ServerSocketChannel
 
 object ComposeFileGenerator {
 
@@ -129,12 +132,17 @@ object ComposeFileGenerator {
     private fun buildPlaceholders(configurationName: String): Placeholders {
         var offset = 0
 
-        fun isPortUsed(port: Int): Boolean =
-            try {
-                ServerSocket(port).use { false }
-            } catch (_: Exception) {
+        fun isPortUsed(port: Int): Boolean {
+            return try {
+                ServerSocketChannel.open().use { channel ->
+                    channel.setOption(StandardSocketOptions.SO_REUSEADDR, true)
+                    channel.bind(InetSocketAddress(port))
+                }
+                false
+            } catch (_: BindException) {
                 true
             }
+        }
 
         val basePorts = listOf(
             PORT_HTTP,
