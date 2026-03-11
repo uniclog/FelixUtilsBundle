@@ -26,6 +26,7 @@
                 text="Run Plugin"
                 description="Run custom plugin logic">
             <add-to-group group-id="MainToolbarRight" anchor="last"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>
