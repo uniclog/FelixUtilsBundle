@@ -14,12 +14,12 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        intellijIdea("2025.3")
-        testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
+        // intellijIdea("2023.3.2")
+        // testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
 
         pluginModule(implementation(project(":plugin-a")))
         pluginModule(implementation(project(":plugin-b")))
-        pluginModule(implementation(project(":config-deployer")))
+        // pluginModule(implementation(project(":config-deployer")))
         pluginModule(implementation(project(":ankey-docker-runner")))
     }
 }
@@ -31,7 +31,7 @@ subprojects {
 
     dependencies {
         intellijPlatform {
-            intellijIdea("2025.3")
+            intellijIdea("2023.3.2")
         }
     }
 
@@ -44,18 +44,18 @@ subprojects {
 
     kotlin {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
 
     tasks {
         patchPluginXml {
-            sinceBuild.set("251")
+            sinceBuild.set("232")
             untilBuild.set("999.*")
         }
         withType<JavaCompile> {
-            sourceCompatibility = "21"
-            targetCompatibility = "21"
+            sourceCompatibility = "17"
+            targetCompatibility = "17"
         }
     }
 }
@@ -69,8 +69,9 @@ tasks.register<Zip>("buildBundle") {
 
     val pluginA = tasks.getByPath(":plugin-a:buildPlugin")
     val pluginB = tasks.getByPath(":plugin-b:buildPlugin")
+    val pluginC = tasks.getByPath(":ankey-docker-runner:buildPlugin")
 
-    dependsOn(pluginA, pluginB)
+    dependsOn(pluginA, pluginB, pluginC)
 
     from(
         zipTree(
@@ -81,6 +82,12 @@ tasks.register<Zip>("buildBundle") {
     from(
         zipTree(
             project(":plugin-b")
+                .tasks.named("buildPlugin").get().outputs.files.singleFile
+        )
+    )
+    from(
+        zipTree(
+            project(":ankey-docker-runner")
                 .tasks.named("buildPlugin").get().outputs.files.singleFile
         )
     )
