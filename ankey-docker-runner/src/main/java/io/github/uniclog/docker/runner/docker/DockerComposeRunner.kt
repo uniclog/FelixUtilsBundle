@@ -305,10 +305,17 @@ object DockerComposeRunner {
                 "docker", "ps",
                 "--filter", "label=com.docker.compose.project=$projectName",
                 "--format", "{{.Names}}"
-            ).start()
+            )
+                .redirectErrorStream(true)
+                .start()
+
+            val finished = process.waitFor(5, TimeUnit.SECONDS)
+            if (!finished) {
+                process.destroyForcibly()
+                return false
+            }
 
             val output = process.inputStream.bufferedReader().readText()
-            process.waitFor()
 
             output.isNotBlank()
         } catch (_: Exception) {
