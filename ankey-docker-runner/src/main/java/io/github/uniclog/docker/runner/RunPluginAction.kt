@@ -14,7 +14,7 @@ import io.github.uniclog.docker.runner.ui.RunDockerDialog.Companion.DOWN_EXIT_CO
 import io.github.uniclog.docker.runner.ui.RunDockerDialog.Companion.STOP_EXIT_CODE
 import io.github.uniclog.docker.runner.ui.RunDockerDialog.Companion.UP_EXIT_CODE
 
-class RunPluginAction : AnAction("Run Plugin") {
+class RunPluginAction : AnAction("Ankey Docker Runner") {
 
 
     override fun actionPerformed(event: AnActionEvent) {
