@@ -140,6 +140,7 @@ object DockerComposeRunner {
         clearConsole: Boolean = true,
         onSuccessAction: () -> Unit
     ) {
+        val app = ApplicationManager.getApplication()
         val runTask: (ConsoleView?) -> Unit = { console ->
             ProgressManager.getInstance().run(
                 object : Task.Backgroundable(project, title, true) {
@@ -197,6 +198,23 @@ object DockerComposeRunner {
 
         if (asyncTask) {
             runTask(null)
+            return
+        }
+
+        if (!app.isDispatchThread) {
+            app.invokeAndWait {
+                runCompose(
+                    project = project,
+                    composeFilePath = composeFilePath,
+                    title = title,
+                    startMessage = startMessage,
+                    command = command,
+                    asyncTask = asyncTask,
+                    onFinished = onFinished,
+                    clearConsole = clearConsole,
+                    onSuccessAction = onSuccessAction
+                )
+            }
             return
         }
 
