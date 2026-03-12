@@ -93,12 +93,12 @@ object ComposeRunner {
     fun dockerProjectExists(projectName: String): Boolean {
         val output = DockerCli.runAndCollect(
             command = listOf(
-                "docker", "network", "ls",
-                "--filter", "name=^${projectName}_",
-                "--format", "{{.Name}}"
-                // "docker", "ps",
-                // "--filter", "label=com.docker.compose.project=$projectName",
-                // "--format", "{{.Names}}"
+                // "docker", "network", "ls",
+                // "--filter", "name=^${projectName}_",
+                // "--format", "{{.Name}}"
+                "docker", "ps",
+                "--filter", "label=com.docker.compose.project=$projectName",
+                "--format", "{{.Names}}"
             ),
             timeoutSeconds = 5
         ) ?: return false
