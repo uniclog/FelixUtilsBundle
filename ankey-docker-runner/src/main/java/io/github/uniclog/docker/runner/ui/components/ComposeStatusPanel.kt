@@ -12,7 +12,8 @@ import io.github.uniclog.docker.runner.docker.ComposeRunner
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.service.DockerService
 import io.github.uniclog.docker.runner.ui.dialog.ConfirmDialog
-import io.github.uniclog.docker.runner.ui.dialog.InfoDialog
+import io.github.uniclog.docker.runner.ui.dialog.PortsDialog
+import java.io.File
 import javax.swing.*
 
 class ComposeStatusPanel(
@@ -22,7 +23,7 @@ class ComposeStatusPanel(
     val panel = JPanel()
     private val statusLabel = JBLabel()
 
-    private val showButton = JButton("Show").apply { isEnabled = false }
+    private val showButton = JButton("Ports").apply { isEnabled = false }
     private val openButton = JButton("Open").apply { isEnabled = false }
     private val deleteButton = JButton("Delete").apply { isEnabled = false }
 
@@ -36,7 +37,26 @@ class ComposeStatusPanel(
 
         showButton.addActionListener {
             /// @todo проверить на пустой comboBox
-            InfoDialog(getAnkeyPath()).show()
+            val path = getAnkeyPath().getComposePath()
+            val portsByService = readComposePorts(path)
+            if (portsByService.isEmpty()) {
+                Messages.showInfoMessage(
+                    "No ports found in compose file.",
+                    "Compose Ports"
+                )
+                return@addActionListener
+            }
+
+            val text = buildString {
+                portsByService.forEach { (service, ports) ->
+                    append(service).append(":\n")
+                    ports.forEach { port ->
+                        append("  ").append(port).append("\n")
+                    }
+                    append("\n")
+                }
+            }
+            PortsDialog(text).show()
         }
         openButton.addActionListener {
             /// @todo проверить на пустой comboBox
@@ -91,5 +111,79 @@ class ComposeStatusPanel(
         showButton.isEnabled = exists
         openButton.isEnabled = exists
         deleteButton.isEnabled = exists
+    }
+
+    private fun readComposePorts(path: String): Map<String, List<String>> {
+        val file = File(path)
+        if (!file.exists()) return emptyMap()
+
+        val result = linkedMapOf<String, MutableList<String>>()
+        var currentService: String? = null
+        var inPorts = false
+
+        file.useLines { lines ->
+            lines.forEach { raw ->
+                val line = raw.replace("\t", "    ")
+                val trimmed = line.trim()
+
+                if (line.startsWith("  ") && !line.startsWith("    ") && trimmed.endsWith(":")) {
+                    val key = trimmed.removeSuffix(":")
+                    currentService = if (key in setOf("services", "networks", "volumes")) null else key
+                    inPorts = false
+                    return@forEach
+                }
+
+                if (currentService != null && line.startsWith("    ports:")) {
+                    inPorts = true
+                    return@forEach
+                }
+
+                if (inPorts && currentService != null && trimmed.startsWith("-")) {
+                    val spec = trimmed.removePrefix("-").trim().trim('"', '\'')
+                    val parts = spec.split(":")
+                    val normalized = if (parts.size >= 2) {
+                        val hostRaw = parts[parts.size - 2].trim()
+                        val contRaw = parts[parts.size - 1].trim()
+                        val host = hostRaw.substringBefore("/").trim()
+                        val cont = contRaw.substringBefore("/").trim()
+                        if (host.matches(Regex("\\d+")) && cont.matches(Regex("\\d+"))) {
+                            formatPort(currentService!!, host, cont)
+                        } else {
+                            spec
+                        }
+                    } else {
+                        spec
+                    }
+                    result.getOrPut(currentService!!) { mutableListOf() }.add(normalized)
+                    return@forEach
+                }
+
+                if (inPorts && line.startsWith("    ") && !line.startsWith("      ") && trimmed.endsWith(":") && trimmed != "ports:") {
+                    inPorts = false
+                }
+            }
+        }
+
+        return result
+    }
+
+    private fun formatPort(service: String, host: String, container: String): String {
+        val role = when (container) {
+            "8080" -> if (service.contains("kafka-ui")) "KAFKA_UI_HTTP" else "HTTP"
+            "8081" -> "BPMN_HTTP"
+            "5005" -> if (service.contains("bpmn")) "BPMN_DEBUG" else "DEBUG"
+            "9010" -> "JMX"
+            "5432" -> "POSTGRES"
+            "9092" -> "KAFKA"
+            "9200" -> "OPENSEARCH_HTTP"
+            "9300" -> "OPENSEARCH_TRANSPORT"
+            else -> null
+        }
+
+        return if (role == null) {
+            "$host -> $container"
+        } else {
+            "$role $host -> $container"
+        }
     }
 }
