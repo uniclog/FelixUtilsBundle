@@ -65,6 +65,21 @@ object ComposeFileWriter {
                 targetFile.writeText("-- generated placeholder: source not found\n")
             }
         }
+
+        if (services.any { it.component == AnkeyComponent.BPMN }) {
+            val targetFile = File(basePath, "docker/init2.sql")
+            targetFile.parentFile?.mkdirs()
+            val resource = javaClass.classLoader.getResourceAsStream("bpmn/init2.sql")
+            if (resource != null) {
+                resource.use { input ->
+                    targetFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            } else {
+                targetFile.writeText("-- generated placeholder: resource not found\n")
+            }
+        }
     }
 
     fun deleteGeneratedFiles(basePath: String) {

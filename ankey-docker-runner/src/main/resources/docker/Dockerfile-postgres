@@ -1,3 +1,4 @@
 FROM nexus.da.lan:8444/postgres:15
 RUN echo "Rebuilding at $(date)"
 COPY aftercreateuser.sql /docker-entrypoint-initdb.d/aftercreateuser.sql
+COPY init2.sql /docker-entrypoint-initdb.d/init2.sql
