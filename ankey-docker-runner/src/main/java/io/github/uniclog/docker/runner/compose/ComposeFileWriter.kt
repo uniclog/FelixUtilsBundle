@@ -50,6 +50,21 @@ object ComposeFileWriter {
                     }
                 }
         }
+
+        if (services.any { it.component == AnkeyComponent.POSTGRES }) {
+            val sourceFile = File(basePath, "ankey/db/postgresql/scripts/aftercreateuser.sql")
+            val targetFile = File(basePath, "docker/aftercreateuser.sql")
+            targetFile.parentFile?.mkdirs()
+            if (sourceFile.exists()) {
+                sourceFile.inputStream().use { input ->
+                    targetFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            } else {
+                targetFile.writeText("-- generated placeholder: source not found\n")
+            }
+        }
     }
 
     fun deleteGeneratedFiles(basePath: String) {
