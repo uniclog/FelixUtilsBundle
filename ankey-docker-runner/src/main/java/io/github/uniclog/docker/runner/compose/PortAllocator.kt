@@ -12,7 +12,7 @@ data class PortAllocation(
 
 class PortAllocator(
     private val basePorts: List<Int>,
-    private val maxOffset: Int = 100
+    private val maxOffset: Int = 200
 ) {
 
     fun allocate(configurationName: String, projectExists: (String) -> Boolean): PortAllocation? {
