@@ -18,6 +18,6 @@ object Constants {
     const val PORT_OPENSEARCH_HTTP = 9200
     const val PORT_OPENSEARCH_TRANSPORT = 9300
 
-    const val PORT_BPMN_HTTP = 10081
-    const val PORT_BPMN_DEBUG = 10007
+    const val PORT_BPMN_HTTP = 8281
+    const val PORT_BPMN_DEBUG = 8207
 }

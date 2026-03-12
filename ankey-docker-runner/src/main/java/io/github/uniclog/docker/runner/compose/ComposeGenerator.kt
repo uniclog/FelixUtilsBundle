@@ -1,5 +1,11 @@
 package io.github.uniclog.docker.runner.compose
 
+import io.github.uniclog.docker.runner.model.AnkeyComponent.BPMN
+import io.github.uniclog.docker.runner.model.AnkeyComponent.CORE
+import io.github.uniclog.docker.runner.model.AnkeyComponent.KAFKA
+import io.github.uniclog.docker.runner.model.AnkeyComponent.KAFKA_UI
+import io.github.uniclog.docker.runner.model.AnkeyComponent.OPENSEARCH
+import io.github.uniclog.docker.runner.model.AnkeyComponent.POSTGRES
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.model.Placeholders
@@ -32,7 +38,7 @@ object ComposeGenerator {
             ankeyPath.getComposeBasePath().removeSuffix(COMPOSE_FILE_NAME)
         )
 
-        val placeholders = buildPlaceholders(ankeyPrefix, projectExists) ?: return null
+        val placeholders = buildPlaceholders(ankeyPrefix, services, projectExists) ?: return null
 
         val template = buildComposeTemplate(services)
         val compose = replacePlaceholders(template, placeholders)
@@ -45,22 +51,39 @@ object ComposeGenerator {
 
     private fun buildPlaceholders(
         configurationName: String,
+        services: List<AnkeyComponentState>,
         projectExists: (String) -> Boolean
     ): Placeholders? {
-        val basePorts = listOf(
-            PORT_HTTP,
-            PORT_DEBUG,
-            PORT_JMX,
-            PORT_KAFKA,
-            PORT_KAFKA_UI,
-            PORT_POSTGRES,
-            PORT_BPMN_HTTP,
-            PORT_BPMN_DEBUG,
-            PORT_OPENSEARCH_HTTP,
-            PORT_OPENSEARCH_TRANSPORT
-        )
+        val basePorts = linkedSetOf<Int>()
+        services.forEach { state ->
+            when (state.component) {
+                CORE -> {
+                    basePorts.add(PORT_HTTP)
+                    basePorts.add(PORT_DEBUG)
+                    basePorts.add(PORT_JMX)
+                }
+                POSTGRES -> {
+                    basePorts.add(PORT_POSTGRES)
+                }
+                KAFKA -> {
+                    basePorts.add(PORT_KAFKA)
+                }
+                KAFKA_UI -> {
+                    basePorts.add(PORT_KAFKA_UI)
+                }
+                BPMN -> {
+                    basePorts.add(PORT_BPMN_HTTP)
+                    basePorts.add(PORT_BPMN_DEBUG)
+                }
+                OPENSEARCH -> {
+                    basePorts.add(PORT_OPENSEARCH_HTTP)
+                    basePorts.add(PORT_OPENSEARCH_TRANSPORT)
+                }
+                else -> {}
+            }
+        }
 
-        val allocation = PortAllocator(basePorts = basePorts).allocate(configurationName) { projectName ->
+        val allocation = PortAllocator(basePorts = basePorts.toList()).allocate(configurationName) { projectName ->
             projectExists(projectName)
         } ?: return null
 
