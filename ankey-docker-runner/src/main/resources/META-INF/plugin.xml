@@ -23,8 +23,8 @@
     <actions>
         <action id="RunPluginAction"
                 class="io.github.uniclog.docker.runner.RunPluginAction"
-                text="Docker Runner"
-                description="Run ankey">
+                text="Ankey Docker Runner"
+                description="">
             <add-to-group group-id="MainToolbarRight" anchor="last"/>
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>

@@ -98,6 +98,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
         val seed = JBLabel("")
 
         val generatePanel = ComposeGeneratePanel(
+            project = event.project,
             getAnkeyPath = { pathSelector.selected() },
             onGenerated = { (prefix, seedText): Pair<String, String> ->
                 AnkeySettings.instance.setAnkeyPrefix(prefix)

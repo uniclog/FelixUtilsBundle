@@ -6,11 +6,10 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
-import io.github.uniclog.docker.runner.docker.ComposeFileGenerator
-import io.github.uniclog.docker.runner.docker.DockerComposeRunner.getComposeProjectName
-import io.github.uniclog.docker.runner.docker.DockerComposeRunner.hasRunningComposeContainers
+import io.github.uniclog.docker.runner.compose.ComposeFileWriter
+import io.github.uniclog.docker.runner.compose.ComposeMetadata
+import io.github.uniclog.docker.runner.docker.ComposeRunner
 import io.github.uniclog.docker.runner.model.AnkeyPath
-import io.github.uniclog.docker.runner.service.AnkeyPathService
 import io.github.uniclog.docker.runner.service.DockerService
 import io.github.uniclog.docker.runner.ui.dialog.ConfirmDialog
 import io.github.uniclog.docker.runner.ui.dialog.InfoDialog
@@ -61,8 +60,8 @@ class ComposeStatusPanel(
                 return@addActionListener
 
             if (DockerService.composeExists(getAnkeyPath())) {
-                val projectName = getComposeProjectName(getAnkeyPath().getComposePath())
-                if (hasRunningComposeContainers(projectName)) {
+                val projectName = ComposeMetadata.getProjectName(getAnkeyPath().getComposePath())
+                if (ComposeRunner.hasRunningComposeContainers(projectName)) {
                     Messages.showErrorDialog(
                         "Docker containers for this compose file are running and must be stopped before generating a new compose file.",
                         "Generate Docker Compose Error"
@@ -71,7 +70,7 @@ class ComposeStatusPanel(
                 }
                 //DockerService.downProcBackground(project, ankeyPath.getComposePath())
             }
-            ComposeFileGenerator.deleteDockerFilesFiles(getAnkeyPath().getComposeBasePath())
+            ComposeFileWriter.deleteGeneratedFiles(getAnkeyPath().getComposeBasePath())
             //AnkeyPathService.deleteFile(getAnkeyPath())
             update()
         }

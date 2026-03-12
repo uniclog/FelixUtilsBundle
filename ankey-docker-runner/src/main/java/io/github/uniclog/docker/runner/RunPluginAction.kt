@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import io.github.uniclog.docker.runner.service.DockerService
 import io.github.uniclog.docker.runner.ui.RunDockerDialog
+import io.github.uniclog.docker.runner.ui.DockerConsole
 import io.github.uniclog.docker.runner.ui.RunDockerDialog.Companion.DOWN_EXIT_CODE
 import io.github.uniclog.docker.runner.ui.RunDockerDialog.Companion.STOP_EXIT_CODE
 import io.github.uniclog.docker.runner.ui.RunDockerDialog.Companion.UP_EXIT_CODE
@@ -26,15 +27,24 @@ class RunPluginAction : AnAction("Ankey Docker Runner") {
         when(dialog.exitCode) {
             UP_EXIT_CODE -> {
                 val composePath = dialog.getDialogData()["composePath"].orEmpty()
-                runInBackground(project, composePath) { p, path -> DockerService.up(p, path) }
+                runInBackground(project, composePath, action = { _, path, out ->
+                    DockerService.up(path, out)
+                })
             }
             STOP_EXIT_CODE -> {
                 val composePath = dialog.getDialogData()["composePath"].orEmpty()
-                runInBackground(project, composePath) { p, path -> DockerService.stop(p, path) }
+                runInBackground(project, composePath, action = { _, path, out ->
+                    DockerService.stop(path, out)
+                })
             }
             DOWN_EXIT_CODE -> {
                 val composePath = dialog.getDialogData()["composePath"].orEmpty()
-                runInBackground(project, composePath) { p, path -> DockerService.down(p, path) }
+                runInBackground(
+                    project,
+                    composePath,
+                    action = { _, path, out -> DockerService.down(path, out) },
+                    clearConsole = false
+                )
             }
         }
     }
@@ -42,7 +52,8 @@ class RunPluginAction : AnAction("Ankey Docker Runner") {
     private fun runInBackground(
         project: Project,
         composePath: String,
-        action: (Project, String) -> java.util.concurrent.CompletableFuture<Result<Unit>>
+        action: (Project, String, ((String) -> Unit)?) -> java.util.concurrent.CompletableFuture<Result<Unit>>,
+        clearConsole: Boolean = true
     ) {
         ProgressManager.getInstance().run(
             object : Task.Backgroundable(project, "Docker Runner", true) {
@@ -50,8 +61,16 @@ class RunPluginAction : AnAction("Ankey Docker Runner") {
                     indicator.isIndeterminate = true
                     indicator.text = "Running docker compose..."
 
+                    val console = DockerConsole.open(project, composePath)
+                    if (console != null && clearConsole) {
+                        DockerConsole.clear(console)
+                    }
+                    val onLine: ((String) -> Unit)? = console?.let { c ->
+                        { line -> DockerConsole.printColored(c, line) }
+                    }
+
                     val result = try {
-                        action(project, composePath).join()
+                        action(project, composePath, onLine).join()
                     } catch (e: Exception) {
                         Result.failure(e)
                     }

@@ -1,16 +1,16 @@
 package io.github.uniclog.docker.runner.service
 
-import com.intellij.openapi.project.Project
-import io.github.uniclog.docker.runner.docker.ComposeFileGenerator
-import io.github.uniclog.docker.runner.docker.DockerComposeRunner
-import io.github.uniclog.docker.runner.docker.DockerComposeRunner.getComposeProjectName
-import io.github.uniclog.docker.runner.docker.DockerComposeRunner.hasRunningComposeContainers
+import io.github.uniclog.docker.runner.compose.ComposeGenerator
+import io.github.uniclog.docker.runner.compose.ComposeMetadata
+import io.github.uniclog.docker.runner.docker.ComposeRunner
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import java.io.File
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 
 object DockerService {
+    private val executor = Executors.newCachedThreadPool()
 
     private fun validateComposePath(composePath: String): Result<Unit> {
         if (composePath.isBlank()) {
@@ -34,65 +34,56 @@ object DockerService {
         }
     }
 
-    fun up(project: Project, composePath: String): CompletableFuture<Result<Unit>> {
+    fun up(
+        composePath: String,
+        onLine: ((String) -> Unit)? = null
+    ): CompletableFuture<Result<Unit>> {
         val precheck = validateComposePath(composePath)
         if (precheck.isFailure) {
             return CompletableFuture.completedFuture(precheck)
         }
 
-        val future = CompletableFuture<Result<Unit>>()
-        val projectName = getComposeProjectName(composePath)
-        val hasRunningContainers = hasRunningComposeContainers(projectName)
+        return CompletableFuture.supplyAsync({
+            val projectName = ComposeMetadata.getProjectName(composePath)
+            val hasRunningContainers = ComposeRunner.hasRunningComposeContainers(projectName)
 
-        if (hasRunningContainers) {
-            DockerComposeRunner.restartCompose(project, composePath) { exitCode ->
-                future.complete(resultFromExitCode(exitCode))
+            val exitCode = if (hasRunningContainers) {
+                ComposeRunner.restartCompose(composePath, onLine)
+            } else {
+                ComposeRunner.upCompose(composePath, onLine)
             }
-        } else {
-            DockerComposeRunner.upCompose(project, composePath) { exitCode ->
-                future.complete(resultFromExitCode(exitCode))
-            }
-        }
-        return future
+            resultFromExitCode(exitCode)
+        }, executor)
     }
 
-    fun stop(project: Project, composePath: String): CompletableFuture<Result<Unit>> {
+    fun stop(
+        composePath: String,
+        onLine: ((String) -> Unit)? = null
+    ): CompletableFuture<Result<Unit>> {
         val precheck = validateComposePath(composePath)
         if (precheck.isFailure) {
             return CompletableFuture.completedFuture(precheck)
         }
 
-        val future = CompletableFuture<Result<Unit>>()
-        DockerComposeRunner.stopCompose(project, composePath) { exitCode ->
-            future.complete(resultFromExitCode(exitCode))
-        }
-        return future
+        return CompletableFuture.supplyAsync({
+            val exitCode = ComposeRunner.stopCompose(composePath, onLine)
+            resultFromExitCode(exitCode)
+        }, executor)
     }
 
-    fun down(project: Project, composePath: String): CompletableFuture<Result<Unit>> {
+    fun down(
+        composePath: String,
+        onLine: ((String) -> Unit)? = null
+    ): CompletableFuture<Result<Unit>> {
         val precheck = validateComposePath(composePath)
         if (precheck.isFailure) {
             return CompletableFuture.completedFuture(precheck)
         }
 
-        val future = CompletableFuture<Result<Unit>>()
-        DockerComposeRunner.downCompose(project, composePath) { exitCode ->
-            future.complete(resultFromExitCode(exitCode))
-        }
-        return future
-    }
-
-    fun downProcBackground(project: Project, composePath: String): CompletableFuture<Result<Unit>> {
-        val precheck = validateComposePath(composePath)
-        if (precheck.isFailure) {
-            return CompletableFuture.completedFuture(precheck)
-        }
-
-        val future = CompletableFuture<Result<Unit>>()
-        DockerComposeRunner.downCompose(project, composePath, true) { exitCode ->
-            future.complete(resultFromExitCode(exitCode))
-        }
-        return future
+        return CompletableFuture.supplyAsync({
+            val exitCode = ComposeRunner.downCompose(composePath, onLine)
+            resultFromExitCode(exitCode)
+        }, executor)
     }
 
     fun composeExists(path: AnkeyPath): Boolean {
@@ -100,7 +91,9 @@ object DockerService {
     }
 
     fun generateCompose(path: AnkeyPath, prefix: String, services: List<AnkeyComponentState>): String? {
-        return ComposeFileGenerator.generate(path, prefix, services)
+        return ComposeGenerator.generate(path, prefix, services) { projectName ->
+            ComposeRunner.dockerProjectExists(projectName)
+        }
     }
 
 }

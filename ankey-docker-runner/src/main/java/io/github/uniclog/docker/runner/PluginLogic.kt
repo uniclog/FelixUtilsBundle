@@ -17,7 +17,7 @@ object PluginLogic {
         // println(compose)
 
         // run docker
-        // DockerComposeRunner.runCompose()
+        // ComposeRunner.upCompose("path/to/docker-compose.yml")
         println("Docker Run 3..")
     }
 
