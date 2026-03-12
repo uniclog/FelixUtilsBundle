@@ -96,6 +96,9 @@ object ComposeRunner {
                 "docker", "network", "ls",
                 "--filter", "name=^${projectName}_",
                 "--format", "{{.Name}}"
+                // "docker", "ps",
+                // "--filter", "label=com.docker.compose.project=$projectName",
+                // "--format", "{{.Names}}"
             ),
             timeoutSeconds = 5
         ) ?: return false
