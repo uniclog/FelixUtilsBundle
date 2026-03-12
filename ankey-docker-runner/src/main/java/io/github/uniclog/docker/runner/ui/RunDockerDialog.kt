@@ -74,9 +74,9 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
     override fun createActions(): Array<out Action?> {
         return arrayOf(
             customDownAction,
-            customStopAction,
+            // customStopAction,
             customUpAction,
-            cancelAction
+            // cancelAction
         )
     }
 
