@@ -66,18 +66,22 @@ object ComposeFileWriter {
             }
         }
 
+        val initTargetFile = File(basePath, "docker/init2.sql")
+        initTargetFile.parentFile?.mkdirs()
         if (services.any { it.component == AnkeyComponent.BPMN }) {
-            val targetFile = File(basePath, "docker/init2.sql")
-            targetFile.parentFile?.mkdirs()
             val resource = javaClass.classLoader.getResourceAsStream("bpmn/init2.sql")
             if (resource != null) {
                 resource.use { input ->
-                    targetFile.outputStream().use { output ->
+                    initTargetFile.outputStream().use { output ->
                         input.copyTo(output)
                     }
                 }
             } else {
-                targetFile.writeText("-- generated placeholder: resource not found\n")
+                initTargetFile.writeText("-- generated placeholder: resource not found\n")
+            }
+        } else {
+            if (!initTargetFile.exists()) {
+                initTargetFile.writeText("-- generated placeholder: not required for this setup\n")
             }
         }
     }
