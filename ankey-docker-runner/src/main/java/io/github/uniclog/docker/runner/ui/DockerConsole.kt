@@ -12,6 +12,19 @@ import io.github.uniclog.docker.runner.compose.ComposeMetadata
 object DockerConsole {
 
     fun open(project: Project, composeFilePath: String): ConsoleView? {
+        val app = ApplicationManager.getApplication()
+        if (app.isDispatchThread) {
+            return openOnEdt(project, composeFilePath)
+        }
+
+        val ref = java.util.concurrent.atomic.AtomicReference<ConsoleView?>()
+        app.invokeAndWait {
+            ref.set(openOnEdt(project, composeFilePath))
+        }
+        return ref.get()
+    }
+
+    private fun openOnEdt(project: Project, composeFilePath: String): ConsoleView? {
         val toolWindow = ToolWindowManager.getInstance(project)
             .getToolWindow("Docker Runner") ?: return null
 
