@@ -1,6 +1,6 @@
 package io.github.uniclog.docker.runner.model
 
-import io.github.uniclog.docker.runner.settings.Constants
+import io.github.uniclog.docker.runner.model.Constants
 
 data class AnkeyPath(
     val absolutePath: String = "",

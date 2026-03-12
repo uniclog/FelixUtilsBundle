@@ -2,7 +2,7 @@ package io.github.uniclog.docker.runner.compose
 
 import io.github.uniclog.docker.runner.model.AnkeyComponent
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
-import io.github.uniclog.docker.runner.settings.Constants.COMPOSE_FILE_NAME
+import io.github.uniclog.docker.runner.model.Constants.COMPOSE_FILE_NAME
 import java.io.File
 
 object ComposeFileWriter {

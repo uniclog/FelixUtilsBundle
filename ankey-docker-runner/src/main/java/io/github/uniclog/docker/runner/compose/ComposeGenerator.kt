@@ -9,18 +9,18 @@ import io.github.uniclog.docker.runner.model.AnkeyComponent.POSTGRES
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.model.Placeholders
-import io.github.uniclog.docker.runner.settings.Constants.COMPOSE_FILE_NAME
-import io.github.uniclog.docker.runner.settings.Constants.COMPOSE_FILE_TEMPLATE
-import io.github.uniclog.docker.runner.settings.Constants.PORT_DEBUG
-import io.github.uniclog.docker.runner.settings.Constants.PORT_HTTP
-import io.github.uniclog.docker.runner.settings.Constants.PORT_JMX
-import io.github.uniclog.docker.runner.settings.Constants.PORT_KAFKA
-import io.github.uniclog.docker.runner.settings.Constants.PORT_KAFKA_UI
-import io.github.uniclog.docker.runner.settings.Constants.PORT_BPMN_DEBUG
-import io.github.uniclog.docker.runner.settings.Constants.PORT_BPMN_HTTP
-import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_HTTP
-import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_TRANSPORT
-import io.github.uniclog.docker.runner.settings.Constants.PORT_POSTGRES
+import io.github.uniclog.docker.runner.model.Constants.COMPOSE_FILE_NAME
+import io.github.uniclog.docker.runner.model.Constants.COMPOSE_FILE_TEMPLATE
+import io.github.uniclog.docker.runner.model.Constants.PORT_DEBUG
+import io.github.uniclog.docker.runner.model.Constants.PORT_HTTP
+import io.github.uniclog.docker.runner.model.Constants.PORT_JMX
+import io.github.uniclog.docker.runner.model.Constants.PORT_KAFKA
+import io.github.uniclog.docker.runner.model.Constants.PORT_KAFKA_UI
+import io.github.uniclog.docker.runner.model.Constants.PORT_BPMN_DEBUG
+import io.github.uniclog.docker.runner.model.Constants.PORT_BPMN_HTTP
+import io.github.uniclog.docker.runner.model.Constants.PORT_OPENSEARCH_HTTP
+import io.github.uniclog.docker.runner.model.Constants.PORT_OPENSEARCH_TRANSPORT
+import io.github.uniclog.docker.runner.model.Constants.PORT_POSTGRES
 object ComposeGenerator {
 
     fun generate(

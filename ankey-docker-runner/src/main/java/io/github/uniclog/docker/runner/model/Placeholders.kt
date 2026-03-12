@@ -1,15 +1,15 @@
 package io.github.uniclog.docker.runner.model
 
-import io.github.uniclog.docker.runner.settings.Constants.PORT_DEBUG
-import io.github.uniclog.docker.runner.settings.Constants.PORT_HTTP
-import io.github.uniclog.docker.runner.settings.Constants.PORT_JMX
-import io.github.uniclog.docker.runner.settings.Constants.PORT_KAFKA
-import io.github.uniclog.docker.runner.settings.Constants.PORT_KAFKA_UI
-import io.github.uniclog.docker.runner.settings.Constants.PORT_BPMN_DEBUG
-import io.github.uniclog.docker.runner.settings.Constants.PORT_BPMN_HTTP
-import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_HTTP
-import io.github.uniclog.docker.runner.settings.Constants.PORT_OPENSEARCH_TRANSPORT
-import io.github.uniclog.docker.runner.settings.Constants.PORT_POSTGRES
+import io.github.uniclog.docker.runner.model.Constants.PORT_DEBUG
+import io.github.uniclog.docker.runner.model.Constants.PORT_HTTP
+import io.github.uniclog.docker.runner.model.Constants.PORT_JMX
+import io.github.uniclog.docker.runner.model.Constants.PORT_KAFKA
+import io.github.uniclog.docker.runner.model.Constants.PORT_KAFKA_UI
+import io.github.uniclog.docker.runner.model.Constants.PORT_BPMN_DEBUG
+import io.github.uniclog.docker.runner.model.Constants.PORT_BPMN_HTTP
+import io.github.uniclog.docker.runner.model.Constants.PORT_OPENSEARCH_HTTP
+import io.github.uniclog.docker.runner.model.Constants.PORT_OPENSEARCH_TRANSPORT
+import io.github.uniclog.docker.runner.model.Constants.PORT_POSTGRES
 
 data class Placeholders(
     var num: String = "",

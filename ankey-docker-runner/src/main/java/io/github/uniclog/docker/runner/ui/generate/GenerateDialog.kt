@@ -9,7 +9,7 @@ import com.intellij.util.ui.JBUI
 import io.github.uniclog.docker.runner.model.AnkeyComponent
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
 import io.github.uniclog.docker.runner.settings.AnkeySettings
-import io.github.uniclog.docker.runner.settings.Constants.ANKEY_VER_11
+import io.github.uniclog.docker.runner.model.Constants.ANKEY_VER_11
 import java.awt.Component
 import javax.swing.Action
 import javax.swing.BoxLayout

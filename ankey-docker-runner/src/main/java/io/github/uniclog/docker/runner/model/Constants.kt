@@ -1,4 +1,4 @@
-package io.github.uniclog.docker.runner.settings
+package io.github.uniclog.docker.runner.model
 
 object Constants {
     const val ANKEY_VER_11 = "1.11"
