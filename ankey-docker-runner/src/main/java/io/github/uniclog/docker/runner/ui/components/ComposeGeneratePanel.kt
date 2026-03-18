@@ -67,7 +67,7 @@ class ComposeGeneratePanel(
                             if (DockerService.composeExists(ankeyPath)) {
                                 val projectName = ComposeMetadata.getProjectName(ankeyPath.getComposePath())
                                 if (ComposeRunner.hasRunningComposeContainers(projectName)) {
-                                    javax.swing.SwingUtilities.invokeLater {
+                                    SwingUtilities.invokeLater {
                                         Messages.showErrorDialog(
                                             "Docker containers for this compose file are running and must be stopped before generating a new compose file.",
                                             "Generate Docker Compose Error"
@@ -81,7 +81,7 @@ class ComposeGeneratePanel(
                             val generated = DockerService.generateCompose(ankeyPath, prefix, services)
 
                             if (generated == null) {
-                                javax.swing.SwingUtilities.invokeLater {
+                                SwingUtilities.invokeLater {
                                     AlertDialog.showErrorDialog(
                                         "Docker Runner",
                                         "Unable to generate compose file. Check ports or docker project names."
@@ -90,8 +90,8 @@ class ComposeGeneratePanel(
                                 return
                             }
 
-                            javax.swing.SwingUtilities.invokeLater {
-                                showGenerated()
+                            SwingUtilities.invokeLater {
+                                showInfo()
                                 onGenerated(Pair(prefix, ""))
                             }
                         }
@@ -105,7 +105,7 @@ class ComposeGeneratePanel(
         panel.add(infoLabel)
     }
 
-    private fun showGenerated() {
+    private fun showInfo() {
         infoLabel.isVisible = true
         val timer = Timer(2000) {
             infoLabel.isVisible = false

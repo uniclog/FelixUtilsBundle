@@ -8,6 +8,11 @@ object DockerCli {
         command: List<String>,
         onLine: ((String) -> Unit)? = null
     ): Int {
+
+        onLine?.invoke("\n\n")
+        onLine?.invoke("Docker CLI\n")
+        onLine?.invoke("Running: ${formatCommand(command)}\n\n")
+
         val process = ProcessBuilder(command)
             .redirectErrorStream(true)
             .start()
@@ -34,5 +39,15 @@ object DockerCli {
         }
 
         return process.inputStream.bufferedReader().readText().trim()
+    }
+
+    private fun formatCommand(command: List<String>): String {
+        return command.joinToString(" ") {
+            if (it.contains(' ') || it.contains('"')) {
+                "\"${it.replace("\"", "\\\"")}\""
+            } else {
+                it
+            }
+        }
     }
 }

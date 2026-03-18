@@ -23,12 +23,13 @@ object ComposeRunner {
         composeFilePath: String,
         onLine: ((String) -> Unit)? = null
     ): Int {
-        onLine?.invoke("Building docker images (no cache)...")
+        onLine?.invoke("Building docker images...")
         val buildExit = DockerCli.run(
             command = listOf(
                 "docker", "compose",
                 "-f", composeFilePath,
-                "build", "--no-cache", "--quiet"
+                "build", "--no-cache",
+                // "--quiet"
             ),
             onLine = onLine
         )
@@ -93,12 +94,12 @@ object ComposeRunner {
     fun dockerProjectExists(projectName: String): Boolean {
         val output = DockerCli.runAndCollect(
             command = listOf(
-                // "docker", "network", "ls",
-                // "--filter", "name=^${projectName}_",
-                // "--format", "{{.Name}}"
-                "docker", "ps",
-                "--filter", "label=com.docker.compose.project=$projectName",
-                "--format", "{{.Names}}"
+                "docker", "network", "ls",
+                "--filter", "name=^${projectName}_",
+                "--format", "{{.Name}}"
+                // "docker", "ps",
+                // "--filter", "label=com.docker.compose.project=$projectName",
+                // "--format", "{{.Names}}"
             ),
             timeoutSeconds = 5
         ) ?: return false
