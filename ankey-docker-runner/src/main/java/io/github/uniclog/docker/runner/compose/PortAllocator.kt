@@ -1,5 +1,6 @@
 package io.github.uniclog.docker.runner.compose
 
+import io.github.uniclog.docker.runner.docker.ComposeRunner
 import java.net.BindException
 import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
@@ -15,13 +16,13 @@ class PortAllocator(
     private val maxOffset: Int = 200
 ) {
 
-    fun allocate(configurationName: String, projectExists: (String) -> Boolean): PortAllocation? {
+    fun allocate(name: String): PortAllocation? {
         var offset = 0
         while (offset <= maxOffset) {
-            val projectName = projectNameWithOffset(configurationName, offset)
+            val projectName = projectNameWithOffset(name, offset)
             val portsToCheck = basePorts.map { it + offset }
             val portsFree = portsToCheck.all { !isPortUsed(it) }
-            val projectFree = !projectExists(projectName)
+            val projectFree = !ComposeRunner.dockerProjectExists(projectName)
             if (portsFree && projectFree) {
                 return PortAllocation(projectName = projectName, offset = offset)
             }
@@ -42,15 +43,15 @@ class PortAllocator(
         }
     }
 
+    private fun projectNameWithOffset(name: String, offset: Int): String {
+        val base = normalizeProjectName(name)
+        return if (offset == 0) base else "${base}-${offset}"
+    }
+
     private fun normalizeProjectName(name: String): String =
         name
             .lowercase()
             .replace(Regex("[^a-z0-9_.-]"), "-")
             .replace(Regex("[-_.]{2,}"), "-")
-            .trim('-', '_', '.')
-
-    private fun projectNameWithOffset(name: String, offset: Int): String {
-        val base = normalizeProjectName(name)
-        return if (offset == 0) base else "$base-$offset"
-    }
+    //.trim('-', '_', '.')
 }

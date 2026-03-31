@@ -15,7 +15,7 @@
       DATABASE_PASSWORD: ankey_bpmn
 
       MAIL_SMTP_PORT: 2525
-      MAIL_SMTP_HOST: localhost
+      MAIL_SMTP_HOST: mail
       MAIL_USER: ankeynoreply
       MAIL_SMTP_SSL: "false"
       MAIL_SMTP_AUTH: "true"

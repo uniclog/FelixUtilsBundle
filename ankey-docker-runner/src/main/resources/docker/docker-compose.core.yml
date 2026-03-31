@@ -17,6 +17,7 @@
       ANKEYIDM_ELASTIC_PORT: 9200
       ANKEYIDM_PG_URL: postgres${NUM}:5432
       ANKEYIDM_KAFKA_HOST: kafka${NUM}:9092
+      ANKEYIDM_BPMN_HOST: ankey-bpmn${NUM}:8081
       HARDWARE_ID: teamcity
       JPDA_SUSPEND: n
     depends_on:

@@ -91,9 +91,7 @@ object DockerService {
     }
 
     fun generateCompose(path: AnkeyPath, prefix: String, services: List<AnkeyComponentState>): String? {
-        return ComposeGenerator.generate(path, prefix, services) { projectName ->
-            ComposeRunner.dockerProjectExists(projectName)
-        }
+        return ComposeGenerator.generate(path, prefix, services)
     }
 
 }

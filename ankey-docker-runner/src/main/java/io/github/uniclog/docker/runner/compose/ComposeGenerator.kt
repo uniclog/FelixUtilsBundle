@@ -1,33 +1,28 @@
 package io.github.uniclog.docker.runner.compose
 
-import io.github.uniclog.docker.runner.model.AnkeyComponent.BPMN
-import io.github.uniclog.docker.runner.model.AnkeyComponent.CORE
-import io.github.uniclog.docker.runner.model.AnkeyComponent.KAFKA
-import io.github.uniclog.docker.runner.model.AnkeyComponent.KAFKA_UI
-import io.github.uniclog.docker.runner.model.AnkeyComponent.OPENSEARCH
-import io.github.uniclog.docker.runner.model.AnkeyComponent.POSTGRES
+import io.github.uniclog.docker.runner.model.AnkeyComponent.*
 import io.github.uniclog.docker.runner.model.AnkeyComponentState
 import io.github.uniclog.docker.runner.model.AnkeyPath
-import io.github.uniclog.docker.runner.model.Placeholders
 import io.github.uniclog.docker.runner.model.Constants.COMPOSE_FILE_NAME
 import io.github.uniclog.docker.runner.model.Constants.COMPOSE_FILE_TEMPLATE
+import io.github.uniclog.docker.runner.model.Constants.PORT_BPMN_DEBUG
+import io.github.uniclog.docker.runner.model.Constants.PORT_BPMN_HTTP
 import io.github.uniclog.docker.runner.model.Constants.PORT_DEBUG
 import io.github.uniclog.docker.runner.model.Constants.PORT_HTTP
 import io.github.uniclog.docker.runner.model.Constants.PORT_JMX
 import io.github.uniclog.docker.runner.model.Constants.PORT_KAFKA
 import io.github.uniclog.docker.runner.model.Constants.PORT_KAFKA_UI
-import io.github.uniclog.docker.runner.model.Constants.PORT_BPMN_DEBUG
-import io.github.uniclog.docker.runner.model.Constants.PORT_BPMN_HTTP
 import io.github.uniclog.docker.runner.model.Constants.PORT_OPENSEARCH_HTTP
 import io.github.uniclog.docker.runner.model.Constants.PORT_OPENSEARCH_TRANSPORT
 import io.github.uniclog.docker.runner.model.Constants.PORT_POSTGRES
+import io.github.uniclog.docker.runner.model.Placeholders
+
 object ComposeGenerator {
 
     fun generate(
         ankeyPath: AnkeyPath,
         ankeyPrefix: String,
-        services: List<AnkeyComponentState> = listOf(),
-        projectExists: (String) -> Boolean
+        services: List<AnkeyComponentState> = listOf()
     ): String? {
         if (services.isEmpty()) {
             return null
@@ -38,7 +33,8 @@ object ComposeGenerator {
             ankeyPath.getComposeBasePath().removeSuffix(COMPOSE_FILE_NAME)
         )
 
-        val placeholders = buildPlaceholders(ankeyPrefix, services, projectExists) ?: return null
+        val prefix = if (ankeyPrefix.isEmpty()) "" else "-${ankeyPrefix}"
+        val placeholders = buildPlaceholders(prefix, services) ?: return null
 
         val template = buildComposeTemplate(services)
         val compose = replacePlaceholders(template, placeholders)
@@ -50,9 +46,8 @@ object ComposeGenerator {
     }
 
     private fun buildPlaceholders(
-        configurationName: String,
-        services: List<AnkeyComponentState>,
-        projectExists: (String) -> Boolean
+        prefix: String,
+        services: List<AnkeyComponentState>
     ): Placeholders? {
         val basePorts = linkedSetOf<Int>()
         services.forEach { state ->
@@ -62,36 +57,40 @@ object ComposeGenerator {
                     basePorts.add(PORT_DEBUG)
                     basePorts.add(PORT_JMX)
                 }
+
                 POSTGRES -> {
                     basePorts.add(PORT_POSTGRES)
                 }
+
                 KAFKA -> {
                     basePorts.add(PORT_KAFKA)
                 }
+
                 KAFKA_UI -> {
                     basePorts.add(PORT_KAFKA_UI)
                 }
+
                 BPMN -> {
                     basePorts.add(PORT_BPMN_HTTP)
                     basePorts.add(PORT_BPMN_DEBUG)
                 }
+
                 OPENSEARCH -> {
                     basePorts.add(PORT_OPENSEARCH_HTTP)
                     basePorts.add(PORT_OPENSEARCH_TRANSPORT)
                 }
+
                 else -> {}
             }
         }
 
-        val allocation = PortAllocator(basePorts = basePorts.toList()).allocate(configurationName) { projectName ->
-            projectExists(projectName)
-        } ?: return null
+        val allocation = PortAllocator(basePorts = basePorts.toList()).allocate(prefix) ?: return null
 
         val num = allocation.projectName
         val offset = allocation.offset
 
         return Placeholders(
-            num = if (num == "" && configurationName == "") "" else "-$num",
+            num = if (num == "") "" else num,
 
             portHttp = (PORT_HTTP + offset).toString(),
             portDebug = (PORT_DEBUG + offset).toString(),

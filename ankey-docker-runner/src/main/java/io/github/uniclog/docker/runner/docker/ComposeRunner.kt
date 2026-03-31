@@ -95,7 +95,7 @@ object ComposeRunner {
         val output = DockerCli.runAndCollect(
             command = listOf(
                 "docker", "network", "ls",
-                "--filter", "name=^${projectName}_",
+                "--filter", "name=^ankey${projectName}_",
                 "--format", "{{.Name}}"
                 // "docker", "ps",
                 // "--filter", "label=com.docker.compose.project=$projectName",
