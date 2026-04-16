@@ -31,6 +31,7 @@ class RunDockerDialog(val event: AnActionEvent) : DialogWrapper(true) {
     )
 
     private val composeStatus = ComposeStatusPanel(
+        project = event.project,
         getAnkeyPath = { pathSelector.selected() },
         upAction = okAction
     )

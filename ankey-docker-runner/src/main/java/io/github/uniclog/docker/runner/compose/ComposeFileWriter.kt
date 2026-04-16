@@ -87,12 +87,21 @@ object ComposeFileWriter {
     }
 
     fun deleteGeneratedFiles(basePath: String) {
-        File("$basePath/docker").deleteRecursively()
-        File("$basePath/pgdata").deleteRecursively()
-        File("$basePath/ankey/run.sh").delete()
-        File("$basePath/ankey/backup.sh").delete()
-        File("$basePath/ankey/felix-cache").deleteRecursively()
-        File("$basePath/ankey/db/postgresql/scripts/init2.sql").delete()
-        File("$basePath/$COMPOSE_FILE_NAME").delete()
+        deleteIfExists(File("$basePath/docker"))
+        deleteIfExists(File("$basePath/pgdata"))
+        deleteIfExists(File("$basePath/ankey/run.sh"))
+        deleteIfExists(File("$basePath/ankey/backup.sh"))
+        deleteIfExists(File("$basePath/ankey/felix-cache"))
+        deleteIfExists(File("$basePath/ankey/db/postgresql/scripts/init2.sql"))
+        deleteIfExists(File("$basePath/$COMPOSE_FILE_NAME"))
+    }
+
+    private fun deleteIfExists(file: File) {
+        if (!file.exists()) {
+            return
+        }
+
+        val deleted = if (file.isDirectory) file.deleteRecursively() else file.delete()
+        check(deleted) { "Failed to delete ${file.absolutePath}" }
     }
 }
