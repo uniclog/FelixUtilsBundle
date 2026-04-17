@@ -23,6 +23,7 @@ class UploadServerDialog(
     init {
         title = "Upload to Server"
         init()
+        okAction.putValue(NAME, "Upload")
     }
 
     fun connection(): EndpointConnection {

@@ -2,10 +2,12 @@ package io.github.uniclog.felixutils.settings
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import io.github.uniclog.felixutils.model.EndpointConnection
 
+@Service(Service.Level.APP)
 @State(name = "io.github.uniclog.felixutils.uFelixUtilsSettings", storages = [Storage("uFelixUtilsSettings.xml")])
 class FelixSettings : PersistentStateComponent<FelixSettings.State> {
 
@@ -38,7 +40,6 @@ class FelixSettings : PersistentStateComponent<FelixSettings.State> {
     companion object {
         fun getInstance(): FelixSettings {
             return ApplicationManager.getApplication().getService(FelixSettings::class.java)
-                ?: FelixSettings()
         }
     }
 }
