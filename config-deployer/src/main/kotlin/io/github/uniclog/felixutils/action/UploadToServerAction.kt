@@ -95,6 +95,10 @@ class UploadToServerAction : AnAction() {
         jsonResourceName: String
     ) {
         val project = event.project
+        val uploadDisplayName = when (context.targetType) {
+            UploadTargetType.JSON -> jsonResourceName
+            UploadTargetType.BUNDLE -> context.file.name
+        }
         object : Task.Backgroundable(project, "Uploading ${context.file.name}", true) {
             override fun run(indicator: ProgressIndicator) {
                 indicator.text = "Uploading ${context.file.name}"
@@ -110,7 +114,7 @@ class UploadToServerAction : AnAction() {
                             context.file.contentsToByteArray()
                         )
                     }
-                    showResult(response, context)
+                    showResult(response, context, uploadDisplayName)
                 }.onFailure { error ->
                     showError(error.message ?: "Unknown error")
                 }
@@ -118,17 +122,18 @@ class UploadToServerAction : AnAction() {
         }.queue()
     }
 
-    private fun showResult(response: HttpResponse<String>, context: UploadContext) {
+    private fun showResult(response: HttpResponse<String>, context: UploadContext, uploadDisplayName: String) {
         val statusCode = response.statusCode()
         if (statusCode in 200..299) {
-            showInfo("${context.file.name} uploaded successfully. HTTP $statusCode")
+            showInfo("$uploadDisplayName uploaded successfully. HTTP $statusCode")
             return
         }
         if (context.targetType == UploadTargetType.BUNDLE && statusCode in 300..399) {
             val redirectLocation = response.headers().firstValue("Location").orElse("")
             if (redirectLocation.contains("/system/console")) {
                 val message = buildString {
-                    append("${context.file.name} uploaded successfully. HTTP ")
+                    append(uploadDisplayName)
+                    append(" uploaded successfully. HTTP ")
                     append(statusCode)
                     if (redirectLocation.isNotBlank()) {
                         append("\nRedirect: ")
