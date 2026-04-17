@@ -10,7 +10,7 @@ import io.github.uniclog.felixutils.model.EndpointConnection
 class FelixSettings : PersistentStateComponent<FelixSettings.State> {
 
     data class State(
-        var url: String = "http://localhost:8080/endpoint/config",
+        var url: String = "http://localhost:8080/ankey/config",
         var username: String = "ankey",
         var password: String = "ankey",
 
