@@ -1,0 +1,35 @@
+<idea-plugin>
+    <id>io.github.uniclog.FelixUtils</id>
+
+    <name>FelixUtils</name>
+
+    <vendor url="https://github.org">Uniclog</vendor>
+
+    <description>
+        Utilities for sending JSON data to Apache Felix /system/console via HTTP.
+    </description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable
+                parentId="tools"
+                instance="io.github.uniclog.felixutils.settings.FelixSettingsConfigurable"
+                displayName="Ankey Felix Deployer"
+                keywords="felix,json,deploy"
+                id="preferences.FelixSender"/>
+    </extensions>
+
+    <actions>
+        <action
+                id="UploadToServer"
+                class="io.github.uniclog.felixutils.action.UploadToServerAction"
+                icon="/META-INF/pluginIcon.svg"
+                text="Upload to Server"
+                description="Open upload dialog for JSON configs and Felix bundles">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </action>
+    </actions>
+
+</idea-plugin>
