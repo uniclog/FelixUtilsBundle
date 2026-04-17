@@ -17,9 +17,9 @@ dependencies {
         // intellijIdea("2026.1")
         // testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
 
-        pluginModule(implementation(project(":plugin-a")))
-        pluginModule(implementation(project(":plugin-b")))
-        // pluginModule(implementation(project(":config-deployer")))
+        // pluginModule(implementation(project(":plugin-a")))
+        // pluginModule(implementation(project(":plugin-b")))
+        pluginModule(implementation(project(":config-deployer")))
         pluginModule(implementation(project(":ankey-docker-runner")))
     }
 }
