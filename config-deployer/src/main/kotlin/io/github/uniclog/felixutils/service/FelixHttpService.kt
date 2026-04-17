@@ -65,7 +65,7 @@ class FelixHttpService(
 
     private fun bundleMultipartBody(boundary: String, fileName: String, fileContent: ByteArray): ByteArray {
         val lineBreak = "\r\n"
-        val parts = mutableListOf<ByteArray>()
+        var parts = mutableListOf<ByteArray>()
 
         fun addField(name: String, value: String) {
             parts += "--$boundary$lineBreak".toByteArray(StandardCharsets.UTF_8)

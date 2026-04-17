@@ -135,10 +135,6 @@ class UploadToServerAction : AnAction() {
                     append(uploadDisplayName)
                     append(" uploaded successfully. HTTP ")
                     append(statusCode)
-                    if (redirectLocation.isNotBlank()) {
-                        append("\nRedirect: ")
-                        append(redirectLocation)
-                    }
                 }
                 showInfo(message)
                 return
