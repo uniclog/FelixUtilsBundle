@@ -7,6 +7,7 @@ import com.intellij.util.ui.FormBuilder
 import io.github.uniclog.felixutils.model.EndpointConnection
 import io.github.uniclog.felixutils.model.UploadContext
 import io.github.uniclog.felixutils.model.UploadTargetType
+import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JPasswordField
 import javax.swing.JTextField
@@ -16,6 +17,7 @@ class UploadServerDialog(
     private val uploadContext: UploadContext,
     initialConnection: EndpointConnection
 ) : DialogWrapper(project) {
+    private val resourceNameField = JTextField(uploadContext.file.nameWithoutExtension)
     private val urlField = JTextField(initialConnection.url)
     private val usernameField = JTextField(initialConnection.username)
     private val passwordField = JPasswordField(initialConnection.password)
@@ -23,7 +25,7 @@ class UploadServerDialog(
     init {
         title = "Upload to Server"
         init()
-        okAction.putValue(NAME, "Upload")
+        okAction.putValue(Action.NAME, "Upload")
     }
 
     fun connection(): EndpointConnection {
@@ -34,15 +36,25 @@ class UploadServerDialog(
         )
     }
 
+    fun jsonResourceName(): String {
+        return resourceNameField.text.trim()
+    }
+
     override fun createCenterPanel(): JComponent {
-        val targetName = when (uploadContext.targetType) {
-            UploadTargetType.JSON -> "JSON config"
-            UploadTargetType.BUNDLE -> "Bundle"
+        val builder = FormBuilder.createFormBuilder()
+            .addVerticalGap(8)
+
+        when (uploadContext.targetType) {
+            UploadTargetType.JSON -> {
+                builder.addLabeledComponent(JBLabel("JSON Config: "), resourceNameField, false)
+            }
+
+            UploadTargetType.BUNDLE -> {
+                builder.addLabeledComponent(JBLabel("Bundle: "), JTextField(uploadContext.file.name), false)
+            }
         }
 
-        return FormBuilder.createFormBuilder()
-            .addVerticalGap(8)
-            .addLabeledComponent(JBLabel("$targetName: "), JTextField(uploadContext.file.name), false)
+        return builder
             .addLabeledComponent(JBLabel("URL:"), urlField, 1, false)
             .addLabeledComponent(JBLabel("Login:"), usernameField, 1, false)
             .addLabeledComponent(JBLabel("Password:"), passwordField, 1, false)

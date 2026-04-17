@@ -75,8 +75,8 @@ class FelixHttpService(
         }
 
         addField("action", "install")
+        addField("_nospaces_", "checked")
         addField("bundlestart", "true")
-        addField("refreshPackages", "true")
         parts += "--$boundary$lineBreak".toByteArray(StandardCharsets.UTF_8)
         parts += "Content-Disposition: form-data; name=\"bundlefile\"; filename=\"$fileName\"$lineBreak"
             .toByteArray(StandardCharsets.UTF_8)

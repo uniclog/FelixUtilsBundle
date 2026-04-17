@@ -39,14 +39,19 @@ class UploadToServerAction : AnAction() {
         }
 
         val connection = dialog.connection()
+        val jsonResourceName = dialog.jsonResourceName()
         val validationError = ConnectionValidator.validate(connection)
         if (validationError != null) {
             Messages.showErrorDialog(validationError, "Upload to Server")
             return
         }
+        if (context.targetType == UploadTargetType.JSON && jsonResourceName.isBlank()) {
+            Messages.showErrorDialog("JSON config name must not be blank", "Upload to Server")
+            return
+        }
 
         saveConnection(settings, context.targetType, connection)
-        upload(event, context, connection)
+        upload(event, context, connection, jsonResourceName)
     }
 
     override fun update(event: AnActionEvent) {
@@ -83,7 +88,12 @@ class UploadToServerAction : AnAction() {
         }
     }
 
-    private fun upload(event: AnActionEvent, context: UploadContext, connection: EndpointConnection) {
+    private fun upload(
+        event: AnActionEvent,
+        context: UploadContext,
+        connection: EndpointConnection,
+        jsonResourceName: String
+    ) {
         val project = event.project
         object : Task.Backgroundable(project, "Uploading ${context.file.name}", true) {
             override fun run(indicator: ProgressIndicator) {
@@ -91,7 +101,7 @@ class UploadToServerAction : AnAction() {
                 runCatching {
                     val response = when (context.targetType) {
                         UploadTargetType.JSON -> httpService.sendJson(
-                            connection.withJsonFileName(context.file.nameWithoutExtension),
+                            connection.withJsonFileName(jsonResourceName),
                             context.file.contentsToByteArray()
                         )
                         UploadTargetType.BUNDLE -> httpService.sendBundle(
