@@ -124,11 +124,31 @@ class UploadToServerAction : AnAction() {
             showInfo("${context.file.name} uploaded successfully. HTTP $statusCode")
             return
         }
+        if (context.targetType == UploadTargetType.BUNDLE && statusCode in 300..399) {
+            val redirectLocation = response.headers().firstValue("Location").orElse("")
+            if (redirectLocation.contains("/system/console")) {
+                val message = buildString {
+                    append("${context.file.name} uploaded successfully. HTTP ")
+                    append(statusCode)
+                    if (redirectLocation.isNotBlank()) {
+                        append("\nRedirect: ")
+                        append(redirectLocation)
+                    }
+                }
+                showInfo(message)
+                return
+            }
+        }
 
         val responseBody = response.body().trim().take(500)
+        val redirectLocation = response.headers().firstValue("Location").orElse("").trim()
         val message = buildString {
             append("Upload failed. HTTP ")
             append(statusCode)
+            if (redirectLocation.isNotEmpty()) {
+                append("\nRedirect: ")
+                append(redirectLocation)
+            }
             if (responseBody.isNotEmpty()) {
                 append("\n\n")
                 append(responseBody)
