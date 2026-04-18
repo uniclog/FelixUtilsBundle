@@ -68,11 +68,10 @@ tasks.register<Zip>("buildBundle") {
     archiveFileName.set("plugins-bundle.zip")
     destinationDirectory.set(layout.buildDirectory.dir("bundle"))
 
-    val pluginA = tasks.getByPath(":plugin-a:buildPlugin")
-    val pluginB = tasks.getByPath(":plugin-b:buildPlugin")
-    val pluginC = tasks.getByPath(":ankey-docker-runner:buildPlugin")
+    val plugin1 = tasks.getByPath(":ankey-docker-runner:buildPlugin")
+    val plugin2 = tasks.getByPath(":config-deployer:buildPlugin")
 
-    dependsOn(pluginA, pluginB, pluginC)
+    dependsOn(plugin1, plugin2)
 
     from(
         zipTree(

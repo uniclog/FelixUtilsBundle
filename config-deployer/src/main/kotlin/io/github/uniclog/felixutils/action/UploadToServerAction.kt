@@ -125,7 +125,7 @@ class UploadToServerAction : AnAction() {
     private fun showResult(response: HttpResponse<String>, context: UploadContext, uploadDisplayName: String) {
         val statusCode = response.statusCode()
         if (statusCode in 200..299) {
-            showInfo("$uploadDisplayName uploaded successfully. HTTP $statusCode")
+            showInfo("$uploadDisplayName uploaded successfully.")
             return
         }
         if (context.targetType == UploadTargetType.BUNDLE && statusCode in 300..399) {
@@ -133,8 +133,7 @@ class UploadToServerAction : AnAction() {
             if (redirectLocation.contains("/system/console")) {
                 val message = buildString {
                     append(uploadDisplayName)
-                    append(" uploaded successfully. HTTP ")
-                    append(statusCode)
+                    append(" uploaded successfully.")
                 }
                 showInfo(message)
                 return
@@ -144,8 +143,7 @@ class UploadToServerAction : AnAction() {
         val responseBody = response.body().trim().take(500)
         val redirectLocation = response.headers().firstValue("Location").orElse("").trim()
         val message = buildString {
-            append("Upload failed. HTTP ")
-            append(statusCode)
+            append("Upload failed.")
             if (redirectLocation.isNotEmpty()) {
                 append("\nRedirect: ")
                 append(redirectLocation)
