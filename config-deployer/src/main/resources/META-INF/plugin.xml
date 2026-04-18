@@ -6,7 +6,7 @@
     <vendor url="https://github.org">Uniclog</vendor>
 
     <description>
-        Utilities for sending JSON data to Apache Felix /system/console via HTTP.
+        Upload JSON configs to Ankey endpoints and install Felix bundles from the editor or Project View.
     </description>
 
     <depends>com.intellij.modules.platform</depends>
