@@ -28,10 +28,12 @@ class UploadToServerAction : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val context = contextResolver.resolve(event) ?: return
         val settings = FelixSettings.getInstance()
+        val defaults = FelixSettings.State()
         val dialog = UploadServerDialog(
             project = event.project,
             uploadContext = context,
-            initialConnection = initialConnection(context.targetType)
+            initialConnection = initialConnection(context.targetType),
+            defaultConnection = defaultConnection(defaults, context.targetType)
         )
 
         if (!dialog.showAndGet()) {
@@ -64,6 +66,13 @@ class UploadToServerAction : AnAction() {
         return when (targetType) {
             UploadTargetType.JSON -> state.ankeyConnection()
             UploadTargetType.BUNDLE -> state.felixConnection()
+        }
+    }
+
+    private fun defaultConnection(defaults: FelixSettings.State, targetType: UploadTargetType): EndpointConnection {
+        return when (targetType) {
+            UploadTargetType.JSON -> defaults.ankeyConnection()
+            UploadTargetType.BUNDLE -> defaults.felixConnection()
         }
     }
 

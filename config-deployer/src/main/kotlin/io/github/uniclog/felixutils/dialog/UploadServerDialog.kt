@@ -8,19 +8,28 @@ import io.github.uniclog.felixutils.model.EndpointConnection
 import io.github.uniclog.felixutils.model.UploadContext
 import io.github.uniclog.felixutils.model.UploadTargetType
 import javax.swing.Action
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPasswordField
+import javax.swing.JPanel
 import javax.swing.JTextField
 
 class UploadServerDialog(
     project: Project?,
     private val uploadContext: UploadContext,
-    initialConnection: EndpointConnection
+    initialConnection: EndpointConnection,
+    private val defaultConnection: EndpointConnection
 ) : DialogWrapper(project) {
     private val resourceNameField = JTextField(uploadContext.file.nameWithoutExtension)
     private val urlField = JTextField(initialConnection.url)
     private val usernameField = JTextField(initialConnection.username)
     private val passwordField = JPasswordField(initialConnection.password)
+    private val resetButton = JButton("Reset Connection").apply {
+        addActionListener { writeConnection(defaultConnection) }
+    }
+    private val actionsPanel = JPanel().apply {
+        add(resetButton)
+    }
 
     init {
         title = "Upload to Server"
@@ -38,6 +47,12 @@ class UploadServerDialog(
 
     fun jsonResourceName(): String {
         return resourceNameField.text.trim()
+    }
+
+    private fun writeConnection(connection: EndpointConnection) {
+        urlField.text = connection.url
+        usernameField.text = connection.username
+        passwordField.text = connection.password
     }
 
     override fun createCenterPanel(): JComponent {
@@ -58,6 +73,7 @@ class UploadServerDialog(
             .addLabeledComponent(JBLabel("URL:"), urlField, 1, false)
             .addLabeledComponent(JBLabel("Login:"), usernameField, 1, false)
             .addLabeledComponent(JBLabel("Password:"), passwordField, 1, false)
+            .addComponent(actionsPanel, 1)
             .panel
     }
 }

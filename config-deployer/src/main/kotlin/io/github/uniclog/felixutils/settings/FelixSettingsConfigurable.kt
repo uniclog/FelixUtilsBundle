@@ -23,8 +23,9 @@ class FelixSettingsConfigurable : Configurable {
 
     override fun createComponent(): JComponent {
         val state = settings.state
-        ankeyPanel = ConnectionSettingsPanel("Ankey", state.ankeyConnection(), ::testConnection)
-        felixPanel = ConnectionSettingsPanel("Felix", state.felixConnection(), ::testConnection)
+        val defaults = FelixSettings.State()
+        ankeyPanel = ConnectionSettingsPanel("Ankey", state.ankeyConnection(), defaults.ankeyConnection(), ::testConnection)
+        felixPanel = ConnectionSettingsPanel("Felix", state.felixConnection(), defaults.felixConnection(), ::testConnection)
 
         return FormBuilder.createFormBuilder()
             .let { ankeyPanel!!.appendTo(it) }
