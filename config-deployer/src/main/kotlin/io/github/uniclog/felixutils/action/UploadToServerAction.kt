@@ -125,7 +125,13 @@ class UploadToServerAction : AnAction() {
                     }
                     showResult(response, context, uploadDisplayName)
                 }.onFailure { error ->
-                    showError(error.message ?: "Unknown error")
+                    showError(
+                        buildTransportErrorMessage(
+                            uploadDisplayName = uploadDisplayName,
+                            connection = connection,
+                            errorMessage = error.message ?: "Unknown error"
+                        )
+                    )
                 }
             }
         }.queue()
@@ -149,20 +155,16 @@ class UploadToServerAction : AnAction() {
             }
         }
 
-        val responseBody = response.body().trim().take(500)
+        val responseBody = response.body().trim()
         val redirectLocation = response.headers().firstValue("Location").orElse("").trim()
-        val message = buildString {
-            append("Upload failed.")
-            if (redirectLocation.isNotEmpty()) {
-                append("\nRedirect: ")
-                append(redirectLocation)
-            }
-            if (responseBody.isNotEmpty()) {
-                append("\n\n")
-                append(responseBody)
-            }
-        }
-        showError(message)
+        showError(
+            buildHttpErrorMessage(
+                uploadDisplayName = uploadDisplayName,
+                statusCode = statusCode,
+                redirectLocation = redirectLocation,
+                responseBody = responseBody
+            )
+        )
     }
 
     private fun showInfo(message: String) {
@@ -174,6 +176,45 @@ class UploadToServerAction : AnAction() {
     private fun showError(message: String) {
         ApplicationManager.getApplication().invokeLater {
             Messages.showErrorDialog(message, "Upload to Server")
+        }
+    }
+
+    private fun buildHttpErrorMessage(
+        uploadDisplayName: String,
+        statusCode: Int,
+        redirectLocation: String,
+        responseBody: String
+    ): String {
+        return buildString {
+            append("Failed to upload ")
+            append(uploadDisplayName)
+            append(".")
+            append("\nHTTP status: ")
+            append(statusCode)
+            if (redirectLocation.isNotEmpty()) {
+                append("\nRedirect: ")
+                append(redirectLocation)
+            }
+            if (responseBody.isNotEmpty()) {
+                append("\n\nServer response:\n")
+                append(responseBody)
+            }
+        }
+    }
+
+    private fun buildTransportErrorMessage(
+        uploadDisplayName: String,
+        connection: EndpointConnection,
+        errorMessage: String
+    ): String {
+        return buildString {
+            append("Failed to upload ")
+            append(uploadDisplayName)
+            append(".")
+            append("\nRequest URL: ")
+            append(connection.url)
+            append("\nError: ")
+            append(errorMessage)
         }
     }
 
