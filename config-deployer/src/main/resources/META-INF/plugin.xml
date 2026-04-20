@@ -1,7 +1,7 @@
 <idea-plugin>
-    <id>io.github.uniclog.FelixUtils</id>
+    <id>io.github.uniclog.AnkeyConfigDeoloyer</id>
 
-    <name>FelixUtils</name>
+    <name>AnkeyConfigDeployer</name>
 
     <vendor url="https://github.org">Uniclog</vendor>
 
