@@ -13,6 +13,7 @@ import javax.swing.JComponent
 import javax.swing.JPasswordField
 import javax.swing.JPanel
 import javax.swing.JTextField
+import java.awt.Dimension
 
 class UploadServerDialog(
     project: Project?,
@@ -75,5 +76,6 @@ class UploadServerDialog(
             .addLabeledComponent(JBLabel("Password:"), passwordField, 1, false)
             .addComponent(actionsPanel, 1)
             .panel
+            .apply { preferredSize = Dimension(520, preferredSize.height) }
     }
 }
