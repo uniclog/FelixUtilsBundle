@@ -3,6 +3,7 @@ package io.github.uniclog.felixutils.action
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
@@ -115,7 +116,7 @@ class UploadToServerAction : AnAction() {
                     val response = when (context.targetType) {
                         UploadTargetType.JSON -> httpService.sendJson(
                             connection.withJsonFileName(jsonResourceName),
-                            context.file.contentsToByteArray()
+                            currentJsonPayload(context)
                         )
                         UploadTargetType.BUNDLE -> httpService.sendBundle(
                             connection,
@@ -135,6 +136,14 @@ class UploadToServerAction : AnAction() {
                 }
             }
         }.queue()
+    }
+
+    private fun currentJsonPayload(context: UploadContext): ByteArray {
+        val documentText = ApplicationManager.getApplication().runReadAction<String?> {
+            FileDocumentManager.getInstance().getDocument(context.file)?.text
+        }
+        return (documentText ?: String(context.file.contentsToByteArray(), StandardCharsets.UTF_8))
+            .toByteArray(StandardCharsets.UTF_8)
     }
 
     private fun showResult(response: HttpResponse<String>, context: UploadContext, uploadDisplayName: String) {
