@@ -8,12 +8,11 @@ import io.github.uniclog.felixutils.model.EndpointConnection
 import io.github.uniclog.felixutils.model.UploadContext
 import io.github.uniclog.felixutils.model.UploadTargetType
 import javax.swing.Action
-import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPasswordField
-import javax.swing.JPanel
 import javax.swing.JTextField
 import java.awt.Dimension
+import java.awt.event.ActionEvent
 
 class UploadServerDialog(
     project: Project?,
@@ -25,11 +24,10 @@ class UploadServerDialog(
     private val urlField = JTextField(initialConnection.url)
     private val usernameField = JTextField(initialConnection.username)
     private val passwordField = JPasswordField(initialConnection.password)
-    private val resetButton = JButton("Reset Connection").apply {
-        addActionListener { writeConnection(defaultConnection) }
-    }
-    private val actionsPanel = JPanel().apply {
-        add(resetButton)
+    private val resetConnectionAction = object : DialogWrapperAction("Reset Connection") {
+        override fun doAction(event: ActionEvent?) {
+            writeConnection(defaultConnection)
+        }
     }
 
     init {
@@ -56,6 +54,10 @@ class UploadServerDialog(
         passwordField.text = connection.password
     }
 
+    override fun createLeftSideActions(): Array<Action> {
+        return arrayOf(resetConnectionAction)
+    }
+
     override fun createCenterPanel(): JComponent {
         val builder = FormBuilder.createFormBuilder()
             .addVerticalGap(8)
@@ -74,7 +76,6 @@ class UploadServerDialog(
             .addLabeledComponent(JBLabel("URL:"), urlField, 1, false)
             .addLabeledComponent(JBLabel("Login:"), usernameField, 1, false)
             .addLabeledComponent(JBLabel("Password:"), passwordField, 1, false)
-            .addComponent(actionsPanel, 1)
             .panel
             .apply { preferredSize = Dimension(520, preferredSize.height) }
     }
