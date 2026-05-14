@@ -66,15 +66,16 @@ class ComposeGeneratePanel(
 
                             if (DockerService.composeExists(ankeyPath)) {
                                 val projectName = ComposeMetadata.getProjectName(ankeyPath.getComposePath())
-                                if (ComposeRunner.hasRunningComposeContainers(projectName)) {
-                                    SwingUtilities.invokeLater {
-                                        Messages.showErrorDialog(
-                                            "Docker containers for this compose file are running and must be stopped before generating a new compose file.",
-                                            "Generate Docker Compose Error"
-                                        )
-                                    }
-                                    return
-                                }
+                                /// @todo добавить флаг который снимает ограничения и выполнить эту проверку в зависимости от флага
+                            //    if (ComposeRunner.hasRunningComposeContainers(projectName)) {
+                            //        SwingUtilities.invokeLater {
+                            //            Messages.showErrorDialog(
+                            //                "Docker containers for this compose file are running and must be stopped before generating a new compose file.",
+                            //                "Generate Docker Compose Error"
+                            //            )
+                            //        }
+                            //        return
+                            //    }
                                 //DockerService.downProcBackground(project, ankeyPath.getComposePath())
                             }
 
