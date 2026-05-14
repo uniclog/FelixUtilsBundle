@@ -6,7 +6,7 @@ plugins {
 
 repositories {
     mavenCentral()
-
+    maven("https://www.jetbrains.com/intellij-repository/releases")
     intellijPlatform {
         defaultRepositories()
     }

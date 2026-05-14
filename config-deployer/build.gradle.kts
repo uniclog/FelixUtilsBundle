@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "io.github.uniclog"
-version = "1.0-SNAPSHOT"
+version = "1.0.1-232-17"
 
 sourceSets {
     main {
