@@ -1,4 +1,5 @@
 FROM nexus.da.lan:8444/gis/openjdk-dcevm:11.0.15_1
+COPY ankey /opt/ankey/
 WORKDIR /opt/ankey
 RUN echo "Rebuilding at $(date)"
 ENTRYPOINT exec sh -c "chmod +x /opt/ankey/startup.sh && chmod +x /opt/ankey/run.sh && exec /opt/ankey/run.sh"

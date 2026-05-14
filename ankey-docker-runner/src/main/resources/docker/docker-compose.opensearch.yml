@@ -4,6 +4,8 @@
     build:
       context: ./docker
       dockerfile: Dockerfile-opensearch
+    mem_limit: 1g
+    memswap_limit: 1g
     ports:
       - "${PORT_OPENSEARCH}:9200"
       - "${PORT_OPENSEARCH_2}:9300"

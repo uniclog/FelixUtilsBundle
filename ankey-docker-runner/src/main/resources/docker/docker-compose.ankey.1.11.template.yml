@@ -6,8 +6,8 @@ services:
     build:
       context: ./docker
       dockerfile: Dockerfile-ankey
-    volumes:
-      - "./ankey:/opt/ankey"
+    # volumes:
+    #   - "./ankey:/opt/ankey"
     ports:
       - "${PORT_HTTP}:8080"
       - "${PORT_DEBUG}:5005"
@@ -19,17 +19,16 @@ services:
       ANKEYIDM_ELASTIC_PORT: 9200
       ANKEYIDM_PG_URL: postgres${NUM}:5432
       ANKEYIDM_KAFKA_HOST: kafka${NUM}:9092
+      ANKEYIDM_BPMN_HOST: ankey-bpmn${NUM}:8081
       HARDWARE_ID: teamcity
       JPDA_SUSPEND: n
     depends_on:
-      kafka${NUM}:
-        condition: service_started
       opensearch${NUM}:
         condition: service_started
       postgres${NUM}:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "--header", "Accept: application/json", "--header", "X-Ankey-Username: ankey", "--header", "X-Ankey-Password: ankey", "http://localhost:${PORT_HTTP}/ankey/info/login"]
+      test: [ "CMD", "curl", "-f", "--header", "Accept: application/json", "--header", "X-Ankey-Username: ankey", "--header", "X-Ankey-Password: ankey", "http://localhost:8080/ankey/info/login" ]
       interval: 1m
       timeout: 30s
       retries: 10
@@ -42,9 +41,6 @@ services:
     build:
       context: ./docker
       dockerfile: Dockerfile-postgres
-    volumes:
-      - ./ankey/db/postgresql/scripts/aftercreateuser.sql:/docker-entrypoint-initdb.d/aftercreateuser.sql
-      - ./pgdata:/var/lib/postgresql/data
     ports:
       - "${PORT_POSTGRES}:5432"
     environment:
@@ -81,22 +77,6 @@ services:
     networks:
       - ankey-network
 
-#  ankey-kafka-ui${NUM}:
-#    image: nexus.da.lan:8444/provectuslabs/kafka-ui
-#    container_name: ankey-kafka-ui${NUM}
-#    ports:
-#      - "${PORT_KAFKA_UI}:8080"
-#    environment:
-#      DYNAMIC_CONFIG_ENABLED: "true"
-#      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka${NUM}:${PORT_KAFKA}
-#      KAFKA_CLUSTERS_0_NAME: local
-#      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
-#      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: SCRAM-SHA-256
-#      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: >-
-#        org.apache.kafka.common.security.scram.ScramLoginModule required username="messageLogin" password="messagePassword";
-#    networks:
-#      - ankey-network
-      
   opensearch${NUM}:
     container_name: opensearch${NUM}
     build:

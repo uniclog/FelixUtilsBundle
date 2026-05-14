@@ -4,6 +4,8 @@
     build:
       context: ./docker
       dockerfile: Dockerfile-postgres
+    mem_limit: 512m
+    memswap_limit: 512m
     ports:
       - "${PORT_POSTGRES}:5432"
     environment:
