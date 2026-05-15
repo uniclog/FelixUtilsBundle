@@ -1,0 +1,18 @@
+<idea-plugin>
+    <id>common-docs-markdown-plugin</id>
+    <name>CommonDocsMarkdownPlugin</name>
+    <vendor>uniclog</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <defaultLiveTemplates file="liveTemplates/MarkdownSnippets.xml"/>
+        <postStartupActivity implementation="io.github.uniclog.docs.ProjectSnippetsActivity"/>
+    </extensions>
+
+    <projectListeners>
+        <listener class="io.github.uniclog.docs.ProjectSnippetsCleanupListener"
+                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
+    </projectListeners>
+
+</idea-plugin>

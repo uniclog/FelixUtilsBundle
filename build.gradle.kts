@@ -21,6 +21,7 @@ dependencies {
         // pluginModule(implementation(project(":plugin-b")))
         pluginModule(implementation(project(":config-deployer")))
         pluginModule(implementation(project(":ankey-docker-runner")))
+        pluginModule(implementation(project(":common-docs-markdown-plugin")))
     }
 }
 
