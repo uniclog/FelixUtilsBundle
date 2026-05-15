@@ -1,0 +1,26 @@
+group: MyDocs
+templates:
+  # 1
+  - name: details
+    description: "Details Block"
+    reformat: true
+    shortenFQNames: true
+    context:
+      OTHER: true
+    value: |
+      <details>
+          <summary>Click to see spoiler</summary>
+          This is the hidden text.
+      </details>
+
+  # 2
+  - name: info
+    description: "Add Info block"
+    reformat: false
+    shortenFQNames: true
+    context:
+      OTHER: true
+    value: |
+      <span class="warn-box">
+          $END$
+      </span>

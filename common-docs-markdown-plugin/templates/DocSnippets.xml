@@ -1,24 +1,26 @@
 <templateSet group="MyDocs">
-    <!-- Сниппет для блока предупреждения -->
-    <template name="warn"
-              value="::: warning&#10;$END$&#10;:::"
-              description="Warning Block"
+
+    <!-- Сниппет для блока детали -->
+    <template name="details"
+              value="&lt;details&gt;&#10;    &lt;summary&gt;Click to see spoiler&lt;/summary&gt;&#10;    This is the hidden text.&#10;&lt;/details&gt;"
+              description="Details Block"
               toReformat="true"
               toShortenFQNames="true">
         <context>
             <!-- Чтобы работал только в Markdown -->
-            <option name="Markdown" value="true"/>
+            <option name="OTHER" value="true"/>
         </context>
     </template>
 
-    <!-- Сниппет для задачи -->
-    <template name="todo"
-              value="- [ ] $DATE$: $END$"
-              description="New TODO task"
+    <!-- Сниппет для блока Инфо -->
+    <template name="info"
+              value="&lt;span class=&quot;warn-box&quot;&gt;&#10;    $END$&#10;&lt;/span&gt;"
+              description="Add Info block"
               toReformat="false"
               toShortenFQNames="true">
         <context>
-            <option name="Markdown" value="true"/>
+            <option name="OTHER" value="true"/>
         </context>
     </template>
+
 </templateSet>
