@@ -1,0 +1,24 @@
+<templateSet group="MyDocs">
+    <!-- Сниппет для блока предупреждения -->
+    <template name="warn"
+              value="::: warning&#10;$END$&#10;:::"
+              description="Warning Block"
+              toReformat="true"
+              toShortenFQNames="true">
+        <context>
+            <!-- Чтобы работал только в Markdown -->
+            <option name="MARKDOWN" value="true"/>
+        </context>
+    </template>
+
+    <!-- Сниппет для задачи -->
+    <template name="todo"
+              value="- [ ] $DATE$: $END$"
+              description="New TODO task"
+              toReformat="false"
+              toShortenFQNames="true">
+        <context>
+            <option name="MARKDOWN" value="true"/>
+        </context>
+    </template>
+</templateSet>
