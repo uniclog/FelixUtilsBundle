@@ -3,7 +3,7 @@ templates:
   # Сниппет для блока Детали
   - name: details
     description: "Details Block"
-    reformat: true
+    reformat: false
     toShortenLongNames: true
     context:
       OTHER: true
