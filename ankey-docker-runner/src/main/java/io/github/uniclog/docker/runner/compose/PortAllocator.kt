@@ -19,9 +19,10 @@ class PortAllocator(
     fun allocate(name: String): PortAllocation? {
         var offset = 0
         while (offset <= maxOffset) {
+            val portsFree = basePorts
+                .map { it + offset }
+                .all { !isPortUsed(it) }
             val projectName = projectNameWithOffset(name, offset)
-            val portsToCheck = basePorts.map { it + offset }
-            val portsFree = portsToCheck.all { !isPortUsed(it) }
             val projectFree = !ComposeRunner.dockerProjectExists(projectName)
             if (portsFree && projectFree) {
                 return PortAllocation(projectName = projectName, offset = offset)
