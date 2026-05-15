@@ -2,7 +2,7 @@ plugins {
     id("org.jetbrains.intellij.platform")
 }
 
-version = "1.0.0-232-17"
+version = "1.0.1-232-17"
 
 sourceSets {
     main {
