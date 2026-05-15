@@ -18,10 +18,13 @@ private const val IDEA_LIVE_TEMPLATES = ".idea/liveTemplates"
 class ProjectSnippetsActivity : ProjectActivity {
 
     override suspend fun execute(project: Project) {
+        println("ProjectSnippetsActivity: Starting for project ${project.name}")
         reloadTemplates(project)
         project.messageBus.connect().subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
             override fun after(events: List<VFileEvent>) {
-                if (events.any { it.path.contains(IDEA_LIVE_TEMPLATES) }) {
+                val relevantEvents = events.filter { it.path.contains(IDEA_LIVE_TEMPLATES) }
+                if (relevantEvents.isNotEmpty()) {
+                    println("ProjectSnippetsActivity: VFS change detected in ${relevantEvents.map { it.path }}")
                     reloadTemplates(project)
                 }
             }
@@ -32,18 +35,30 @@ class ProjectSnippetsActivity : ProjectActivity {
         val projectPath = project.basePath ?: return
         val templatesDir = File(projectPath, IDEA_LIVE_TEMPLATES)
         
-        if (!templatesDir.exists() || !templatesDir.isDirectory) return
+        println("ProjectSnippetsActivity: Reloading templates from ${templatesDir.absolutePath}")
+
+        if (!templatesDir.exists() || !templatesDir.isDirectory) {
+            println("ProjectSnippetsActivity: Directory not found: ${templatesDir.absolutePath}")
+            return
+        }
 
         val templateSettings = TemplateSettings.getInstance()
 
-        templateSettings.templates
+        val removedCount = templateSettings.templates
             .filter { it.groupName.startsWith(GROUP_PREFIX) }
-            .forEach { templateSettings.removeTemplate(it) }
+            .onEach { templateSettings.removeTemplate(it) }
+            .size
+        
+        if (removedCount > 0) {
+            println("ProjectSnippetsActivity: Removed $removedCount existing project templates")
+        }
 
         val files = templatesDir.listFiles { _, name -> name.endsWith(".xml") } ?: return
+        println("ProjectSnippetsActivity: Found ${files.size} XML files")
 
         for (file in files) {
             try {
+                println("ProjectSnippetsActivity: Processing file: ${file.name}")
                 val element = JDOMUtil.load(file)
                 if (element.name == "templateSet") {
                     val groupName = element.getAttributeValue("group") ?: "Project"
@@ -66,15 +81,21 @@ class ProjectSnippetsActivity : ProjectActivity {
                             
                             if (contextId != null) {
                                 val ep = ExtensionPointName.create<TemplateContextType>("com.intellij.codeInsight.template.contextType")
-                                ep.extensionList.find { it.contextId.equals(contextId, ignoreCase = true) }?.let { type ->
-                                    template.templateContext.setEnabled(type, isEnabled)
+                                val contextType = ep.extensionList.find { it.contextId.equals(contextId, ignoreCase = true) }
+                                if (contextType != null) {
+                                    template.templateContext.setEnabled(contextType, isEnabled)
+                                    println("ProjectSnippetsActivity: Set context '$contextId' for template '$name'")
+                                } else {
+                                    println("ProjectSnippetsActivity: WARNING - Context '$contextId' NOT FOUND for template '$name'")
                                 }
                             }
                         }
                         templateSettings.addTemplate(template)
+                        println("ProjectSnippetsActivity: Added template '$name' to group '$finalGroupName'")
                     }
                 }
             } catch (e: Exception) {
+                println("ProjectSnippetsActivity: Error loading file ${file.name}: ${e.message}")
                 e.printStackTrace()
             }
         }
