@@ -1,6 +1,5 @@
 package io.github.uniclog.docs
 
-import com.intellij.codeInsight.template.TemplateContextType
 import com.intellij.codeInsight.template.impl.TemplateContextTypes
 import com.intellij.codeInsight.template.impl.TemplateImpl
 import com.intellij.codeInsight.template.impl.TemplateSettings
@@ -14,7 +13,7 @@ import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.io.FileInputStream
 
-const val GROUP_PREFIX = "Project: "
+const val GROUP_PREFIX = "Custom: "
 private const val IDEA_LIVE_TEMPLATES = ".idea/liveTemplates"
 
 class ProjectSnippetsActivity : ProjectActivity {
@@ -24,9 +23,9 @@ class ProjectSnippetsActivity : ProjectActivity {
         reloadTemplates(project)
         project.messageBus.connect().subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
             override fun after(events: List<VFileEvent>) {
-                val relevantEvents = events.filter { 
-                    it.path.contains(IDEA_LIVE_TEMPLATES) && 
-                    (it.path.endsWith(".xml") || it.path.endsWith(".yaml") || it.path.endsWith(".yml"))
+                val relevantEvents = events.filter {
+                    it.path.contains(IDEA_LIVE_TEMPLATES) &&
+                            (it.path.endsWith(".xml") || it.path.endsWith(".yaml") || it.path.endsWith(".yml"))
                 }
                 if (relevantEvents.isNotEmpty()) {
                     println("ProjectSnippetsActivity: VFS change detected in ${relevantEvents.map { it.path }}")
@@ -39,7 +38,7 @@ class ProjectSnippetsActivity : ProjectActivity {
     private fun reloadTemplates(project: Project) {
         val projectPath = project.basePath ?: return
         val templatesDir = File(projectPath, IDEA_LIVE_TEMPLATES)
-        
+
         println("ProjectSnippetsActivity: Reloading templates from ${templatesDir.absolutePath}")
 
         if (!templatesDir.exists() || !templatesDir.isDirectory) {
@@ -53,13 +52,13 @@ class ProjectSnippetsActivity : ProjectActivity {
             .filter { it.groupName.startsWith(GROUP_PREFIX) }
             .onEach { templateSettings.removeTemplate(it) }
             .size
-        
+
         if (removedCount > 0) {
             println("ProjectSnippetsActivity: Removed $removedCount existing project templates")
         }
 
-        val files = templatesDir.listFiles { _, name -> 
-            name.endsWith(".xml") || name.endsWith(".yaml") || name.endsWith(".yml") 
+        val files = templatesDir.listFiles { _, name ->
+            name.endsWith(".xml") || name.endsWith(".yaml") || name.endsWith(".yml")
         } ?: return
         println("ProjectSnippetsActivity: Found ${files.size} template files")
 
@@ -88,10 +87,11 @@ class ProjectSnippetsActivity : ProjectActivity {
                 val name = templateElement.getAttributeValue("name") ?: return@forEach
                 val value = templateElement.getAttributeValue("value") ?: ""
                 val template = TemplateImpl(name, value, finalGroupName)
-                
+
                 template.description = templateElement.getAttributeValue("description")
                 templateElement.getAttributeValue("toReformat")?.toBoolean()?.let { template.isToReformat = it }
-                templateElement.getAttributeValue("toShortenFQNames")?.toBoolean()?.let { template.isToShortenLongNames = it }
+                templateElement.getAttributeValue("toShortenLongNames")?.toBoolean()
+                    ?.let { template.isToShortenLongNames = it }
 
                 templateElement.getChild("context")?.getChildren("option")?.forEach { option ->
                     val contextId = option.getAttributeValue("name")
@@ -107,7 +107,7 @@ class ProjectSnippetsActivity : ProjectActivity {
     private fun loadYamlTemplates(file: File, templateSettings: TemplateSettings) {
         val yaml = Yaml()
         val data = yaml.load<Map<String, Any>>(FileInputStream(file)) ?: return
-        
+
         val groupName = data["group"] as? String ?: "Project"
         val finalGroupName = GROUP_PREFIX + groupName
         val templates = data["templates"] as? List<Map<String, Any>> ?: return
@@ -119,13 +119,13 @@ class ProjectSnippetsActivity : ProjectActivity {
 
             template.description = tData["description"] as? String
             template.isToReformat = tData["reformat"] as? Boolean ?: false
-            template.isToShortenLongNames = tData["shortenFQNames"] as? Boolean ?: true
+            template.isToShortenLongNames = tData["toShortenLongNames"] as? Boolean ?: true
 
             val contexts = tData["context"] as? Map<String, Boolean>
             contexts?.forEach { (contextId, isEnabled) ->
                 setContext(template, contextId, isEnabled)
             }
-            
+
             templateSettings.addTemplate(template)
             println("ProjectSnippetsActivity: Added YAML template '$name' to group '$finalGroupName'")
         }
@@ -133,7 +133,8 @@ class ProjectSnippetsActivity : ProjectActivity {
 
     private fun setContext(template: TemplateImpl, contextId: String?, isEnabled: Boolean) {
         if (contextId == null) return
-        val contextType = TemplateContextTypes.getAllContextTypes().find { it.contextId.equals(contextId, ignoreCase = true) }
+        val contextType =
+            TemplateContextTypes.getAllContextTypes().find { it.contextId.equals(contextId, ignoreCase = true) }
         if (contextType != null) {
             template.templateContext.setEnabled(contextType, isEnabled)
             // println("ProjectSnippetsActivity: Set context '$contextId' for template '${template.key}'")
