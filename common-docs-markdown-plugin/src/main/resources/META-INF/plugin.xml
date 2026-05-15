@@ -4,7 +4,6 @@
     <vendor>uniclog</vendor>
 
     <depends>com.intellij.modules.platform</depends>
-    <depends>org.intellij.plugins.markdown</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <defaultLiveTemplates file="liveTemplates/MarkdownSnippets.xml"/>
