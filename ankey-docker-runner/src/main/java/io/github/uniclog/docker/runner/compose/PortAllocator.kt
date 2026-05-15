@@ -17,17 +17,32 @@ class PortAllocator(
 ) {
 
     fun allocate(name: String): PortAllocation? {
-        var offset = 0
-        while (offset <= maxOffset) {
+        val nameOffset = findFreeNameOffset(name) ?: return null
+        val portOffset = findFreePortOffset() ?: return null
+        return PortAllocation(
+            projectName = projectNameWithOffset(name, nameOffset),
+            offset = portOffset
+        )
+    }
+
+    private fun findFreeNameOffset(name: String): Int? {
+        for (offset in 0..maxOffset) {
+            val projectName = projectNameWithOffset(name, offset)
+            if (!ComposeRunner.dockerProjectExists(projectName)) {
+                return offset
+            }
+        }
+        return null
+    }
+
+    private fun findFreePortOffset(): Int? {
+        for (offset in 0..maxOffset) {
             val portsFree = basePorts
                 .map { it + offset }
                 .all { !isPortUsed(it) }
-            val projectName = projectNameWithOffset(name, offset)
-            val projectFree = !ComposeRunner.dockerProjectExists(projectName)
-            if (portsFree && projectFree) {
-                return PortAllocation(projectName = projectName, offset = offset)
+            if (portsFree) {
+                return offset
             }
-            offset++
         }
         return null
     }
