@@ -1,23 +1,23 @@
-group: MyDocs
+group: Common Docs Snippets
 templates:
-  # 1
+  # Сниппет для блока Детали
   - name: details
     description: "Details Block"
     reformat: true
-    shortenFQNames: true
+    toShortenLongNames: true
     context:
       OTHER: true
     value: |
       <details>
           <summary>Click to see spoiler</summary>
-          This is the hidden text.
+          This is the hidden text.$END$
       </details>
 
-  # 2
+  # Сниппет для блока Инфо
   - name: info
     description: "Add Info block"
     reformat: false
-    shortenFQNames: true
+    toShortenLongNames: true
     context:
       OTHER: true
     value: |
