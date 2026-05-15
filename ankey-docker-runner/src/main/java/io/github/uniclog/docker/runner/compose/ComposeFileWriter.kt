@@ -11,18 +11,18 @@ object ComposeFileWriter {
         File(path).writeText(content)
     }
 
-    fun copyDockerfiles(basePath: String, services: List<AnkeyComponentState>) {
+    fun copyDockerfiles(basePath: String, services: List<AnkeyComponentState>, isMapAnkeyVolume: Boolean = false) {
         File("$basePath/docker").mkdirs()
 
         val paths = mutableMapOf(
             "ankey/run.sh" to "ankey/run.sh",
             "ankey/backup.sh" to "ankey/backup.sh"
         )
-        // @todo РґРѕР±Р°РІРёС‚СЊ РѕР¶РёРґР°РЅРёРµ РґРѕР±Р°РІР»РµРЅРЅС‹С… СЃРµСЂРІРёСЃРѕРІ
+        // @todo добавить ожидание добавленных сервисов
         services.forEach {
             when (it.component) {
                 AnkeyComponent.CORE -> {
-                    paths["docker/Dockerfile-ankey"] = "docker/Dockerfile-ankey"
+                    // paths["docker/Dockerfile-ankey"] = "docker/Dockerfile-ankey"
                 }
                 AnkeyComponent.POSTGRES -> {
                     paths["docker/Dockerfile-postgres"] = "docker/Dockerfile-postgres"
@@ -51,7 +51,21 @@ object ComposeFileWriter {
                 }
         }
 
+        // Handle Dockerfile-ankey separately to allow modification
+        if (services.any { it.component == AnkeyComponent.CORE }) {
+            javaClass.classLoader.getResourceAsStream("docker/Dockerfile-ankey")?.use { input ->
+                var content = input.bufferedReader().readText()
+                if (isMapAnkeyVolume) {
+                    content = content.replace("COPY ankey /opt/ankey/", "# COPY ankey /opt/ankey/")
+                }
+                val targetFile = File(basePath, "docker/Dockerfile-ankey")
+                targetFile.parentFile?.mkdirs()
+                targetFile.writeText(content)
+            }
+        }
+
         if (services.any { it.component == AnkeyComponent.POSTGRES }) {
+
             val sourceFile = File(basePath, "ankey/db/postgresql/scripts/aftercreateuser.sql")
             val targetFile = File(basePath, "docker/aftercreateuser.sql")
             targetFile.parentFile?.mkdirs()

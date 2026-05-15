@@ -14,6 +14,7 @@ class AnkeySettings : PersistentStateComponent<AnkeySettings.State> {
         var selectedPath: String = "",
         var selectedPathRoot: String = "",
         var ankeyPrefix: String = "",
+        var isMapAnkeyVolume: Boolean = false,
     )
 
     private var state: State = State()
@@ -33,6 +34,11 @@ class AnkeySettings : PersistentStateComponent<AnkeySettings.State> {
     fun getAnkeyPrefix(): String = state.ankeyPrefix
     fun setAnkeyPrefix(prefix: String) {
         state.ankeyPrefix = prefix
+    }
+
+    fun isMapAnkeyVolume(): Boolean = state.isMapAnkeyVolume
+    fun setMapAnkeyVolume(isMap: Boolean) {
+        state.isMapAnkeyVolume = isMap
     }
 
     companion object {

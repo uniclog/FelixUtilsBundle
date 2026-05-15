@@ -90,8 +90,8 @@ object DockerService {
         return File(path.getComposePath()).exists()
     }
 
-    fun generateCompose(path: AnkeyPath, prefix: String, services: List<AnkeyComponentState>): String? {
-        return ComposeGenerator.generate(path, prefix, services)
+    fun generateCompose(path: AnkeyPath, prefix: String, services: List<AnkeyComponentState>, isMapAnkeyVolume: Boolean): String? {
+        return ComposeGenerator.generate(path, prefix, services, isMapAnkeyVolume)
     }
 
 }

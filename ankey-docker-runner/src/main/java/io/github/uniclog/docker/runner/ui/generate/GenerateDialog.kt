@@ -25,6 +25,10 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
     private val kafkaUiOpt = JBCheckBox("Kafka UI")
     private val bpmnOpt = JBCheckBox("BPMN Service")
     private val demoOpt = JBCheckBox("Demo Data")
+    private val mapAnkeyVolumeOpt = JBCheckBox("Map ankey folder as volume").apply {
+        isSelected = AnkeySettings.instance.isMapAnkeyVolume()
+        toolTipText = "If checked, the ankey folder will be mapped as a volume in docker-compose. Otherwise, it will be copied into the container."
+    }
 
     private val prefixField = JBTextField(AnkeySettings.instance.getAnkeyPrefix())
 
@@ -114,7 +118,7 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
         group(
             title = "Optional services",
             description = "Additional services for development and testing",
-            components = listOf(kafkaUiOpt, bpmnOpt, demoOpt)
+            components = listOf(kafkaUiOpt, bpmnOpt, demoOpt, mapAnkeyVolumeOpt)
         )
 
     private fun group(
@@ -152,6 +156,8 @@ class GenerateDialog(private val coreVersion: String) : DialogWrapper(true) {
             .filter { it.isActivate }
 
     fun getAnkeyPrefix(): String = prefixField.text
+
+    fun isMapAnkeyVolume(): Boolean = mapAnkeyVolumeOpt.isSelected
 }
 
 /*

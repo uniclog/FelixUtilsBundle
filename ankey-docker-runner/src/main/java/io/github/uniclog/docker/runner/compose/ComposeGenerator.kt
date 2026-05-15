@@ -22,7 +22,8 @@ object ComposeGenerator {
     fun generate(
         ankeyPath: AnkeyPath,
         ankeyPrefix: String,
-        services: List<AnkeyComponentState> = listOf()
+        services: List<AnkeyComponentState> = listOf(),
+        isMapAnkeyVolume: Boolean = false
     ): String? {
         if (services.isEmpty()) {
             return null
@@ -36,11 +37,11 @@ object ComposeGenerator {
         val prefix = if (ankeyPrefix.isEmpty()) "" else "-${ankeyPrefix}"
         val placeholders = buildPlaceholders(prefix, services) ?: return null
 
-        val template = buildComposeTemplate(services)
+        val template = buildComposeTemplate(services, isMapAnkeyVolume)
         val compose = replacePlaceholders(template, placeholders)
 
         ComposeFileWriter.writeComposeFile(ankeyPath.getComposePath(), compose)
-        ComposeFileWriter.copyDockerfiles(ankeyPath.getComposeBasePath(), services)
+        ComposeFileWriter.copyDockerfiles(ankeyPath.getComposeBasePath(), services, isMapAnkeyVolume)
 
         return placeholders.num
     }
@@ -108,14 +109,20 @@ object ComposeGenerator {
         )
     }
 
-    fun buildComposeTemplate(selectedServices: List<AnkeyComponentState>): String {
+    fun buildComposeTemplate(selectedServices: List<AnkeyComponentState>, isMapAnkeyVolume: Boolean = false): String {
         val base = ComposeTemplateLoader.load(COMPOSE_FILE_TEMPLATE.format("base"))
         val network = ComposeTemplateLoader.load(COMPOSE_FILE_TEMPLATE.format("network"))
 
         val services = selectedServices
             .filter { it.component.fileName.isNotBlank() }
-            .joinToString("\n\n")
-            { ComposeTemplateLoader.load(COMPOSE_FILE_TEMPLATE.format(it.component.fileName)) }
+            .joinToString("\n\n") { state ->
+                var template = ComposeTemplateLoader.load(COMPOSE_FILE_TEMPLATE.format(state.component.fileName))
+                if (state.component == CORE && isMapAnkeyVolume) {
+                    template = template.replace("# volumes:", "volumes:")
+                    template = template.replace("#   - \"./ankey:/opt/ankey\"", "  - \"./ankey:/opt/ankey\"")
+                }
+                template
+            }
 
         val compose = buildString {
             append(base.trimEnd())

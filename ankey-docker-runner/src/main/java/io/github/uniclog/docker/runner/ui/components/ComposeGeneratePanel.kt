@@ -12,6 +12,7 @@ import io.github.uniclog.docker.runner.compose.ComposeMetadata
 import io.github.uniclog.docker.runner.docker.ComposeRunner
 import io.github.uniclog.docker.runner.model.AnkeyPath
 import io.github.uniclog.docker.runner.service.DockerService
+import io.github.uniclog.docker.runner.settings.AnkeySettings
 import io.github.uniclog.docker.runner.ui.dialog.AlertDialog
 import io.github.uniclog.docker.runner.ui.dialog.ConfirmDialog
 import io.github.uniclog.docker.runner.ui.generate.GenerateDialog
@@ -48,6 +49,7 @@ class ComposeGeneratePanel(
                     return@addActionListener
                 val services = generateDialog.getSelectedOptions()
                 val prefix = generateDialog.getAnkeyPrefix()
+                val isMapAnkeyVolume = generateDialog.isMapAnkeyVolume()
 
                 /// confirm
                 val dialog = ConfirmDialog(
@@ -56,6 +58,8 @@ class ComposeGeneratePanel(
                 )
                 if (!dialog.showAndGet())
                     return@addActionListener
+
+                AnkeySettings.instance.setMapAnkeyVolume(isMapAnkeyVolume)
 
                 /// generate compose file
                 ProgressManager.getInstance().run(
@@ -79,7 +83,7 @@ class ComposeGeneratePanel(
                                 //DockerService.downProcBackground(project, ankeyPath.getComposePath())
                             }
 
-                            val generated = DockerService.generateCompose(ankeyPath, prefix, services)
+                            val generated = DockerService.generateCompose(ankeyPath, prefix, services, isMapAnkeyVolume)
 
                             if (generated == null) {
                                 SwingUtilities.invokeLater {
