@@ -1,6 +1,7 @@
 package io.github.uniclog.docs
 
 import com.intellij.codeInsight.template.TemplateContextType
+import com.intellij.codeInsight.template.impl.TemplateContextTypes
 import com.intellij.codeInsight.template.impl.TemplateImpl
 import com.intellij.codeInsight.template.impl.TemplateSettings
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -80,7 +81,7 @@ class ProjectSnippetsActivity : ProjectActivity {
                             val isEnabled = option.getAttributeValue("value")?.toBoolean() ?: true
                             
                             if (contextId != null) {
-                                val contextType = TemplateContextType.ALL_CONTEXT_TYPES.get().find { it.contextId.equals(contextId, ignoreCase = true) }
+                                val contextType = TemplateContextTypes.getAllContextTypes().find { it.contextId.equals(contextId, ignoreCase = true) }
                                 if (contextType != null) {
                                     template.templateContext.setEnabled(contextType, isEnabled)
                                     println("ProjectSnippetsActivity: Set context '$contextId' for template '$name'")
