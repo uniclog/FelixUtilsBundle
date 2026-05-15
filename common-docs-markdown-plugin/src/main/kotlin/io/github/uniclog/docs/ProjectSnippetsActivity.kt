@@ -80,8 +80,7 @@ class ProjectSnippetsActivity : ProjectActivity {
                             val isEnabled = option.getAttributeValue("value")?.toBoolean() ?: true
                             
                             if (contextId != null) {
-                                val ep = ExtensionPointName.create<TemplateContextType>("com.intellij.codeInsight.template.contextType")
-                                val contextType = ep.extensionList.find { it.contextId.equals(contextId, ignoreCase = true) }
+                                val contextType = TemplateContextType.EP_NAME.extensionList.find { it.contextId.equals(contextId, ignoreCase = true) }
                                 if (contextType != null) {
                                     template.templateContext.setEnabled(contextType, isEnabled)
                                     println("ProjectSnippetsActivity: Set context '$contextId' for template '$name'")
