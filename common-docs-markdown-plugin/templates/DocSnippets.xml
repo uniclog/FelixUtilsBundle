@@ -7,7 +7,7 @@
               toShortenFQNames="true">
         <context>
             <!-- Чтобы работал только в Markdown -->
-            <option name="MARKDOWN" value="true"/>
+            <option name="Markdown" value="true"/>
         </context>
     </template>
 
@@ -18,7 +18,7 @@
               toReformat="false"
               toShortenFQNames="true">
         <context>
-            <option name="MARKDOWN" value="true"/>
+            <option name="Markdown" value="true"/>
         </context>
     </template>
 </templateSet>

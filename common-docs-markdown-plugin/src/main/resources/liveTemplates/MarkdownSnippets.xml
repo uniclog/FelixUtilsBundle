@@ -1,12 +1,12 @@
 <templateSet group="MarkdownSnippets">
     <template name="&gt;" value="&lt;span class=&quot;warn-box&quot;&gt;&#10;    $END$&#10;&lt;/span&gt;" description="Info Block" toReformat="false" toShortenFQNames="true">
         <context>
-            <option name="MARKDOWN" value="true" />
+            <option name="Markdown" value="true" />
         </context>
     </template>
     <template name="info" value="&lt;span class=&quot;warn-box&quot;&gt;&#10;    $END$&#10;&lt;/span&gt;" description="Info Block" toReformat="false" toShortenFQNames="true">
         <context>
-            <option name="MARKDOWN" value="true" />
+            <option name="Markdown" value="true" />
         </context>
     </template>
 </templateSet>

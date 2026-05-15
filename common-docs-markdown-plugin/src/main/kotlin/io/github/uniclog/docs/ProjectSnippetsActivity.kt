@@ -66,7 +66,7 @@ class ProjectSnippetsActivity : ProjectActivity {
                             
                             if (contextId != null) {
                                 val ep = ExtensionPointName.create<TemplateContextType>("com.intellij.codeInsight.template.contextType")
-                                ep.extensionList.find { it.contextId == contextId }?.let { type ->
+                                ep.extensionList.find { it.contextId.equals(contextId, ignoreCase = true) }?.let { type ->
                                     template.templateContext.setEnabled(type, isEnabled)
                                 }
                             }
