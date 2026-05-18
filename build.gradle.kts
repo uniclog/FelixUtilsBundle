@@ -30,9 +30,17 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "java")
 
+    val platformVersion = project.findProperty("platformVersion")?.toString() ?: "2023.3.2"
+
+    val (javaVersion, buildNumber) = when {
+        platformVersion.startsWith("2021") -> JavaVersion.VERSION_11 to "212"
+        platformVersion.startsWith("2026") -> JavaVersion.VERSION_21 to "261"
+        else -> JavaVersion.VERSION_17 to "232" // Default for 2022-2025
+    }
+
     dependencies {
         intellijPlatform {
-            intellijIdea("2023.3.2")
+            intellijIdea(platformVersion)
         }
     }
 
@@ -45,18 +53,18 @@ subprojects {
 
     kotlin {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(javaVersion.toString()))
         }
     }
 
     tasks {
         patchPluginXml {
-            sinceBuild.set("232")
+            sinceBuild.set(buildNumber)
             untilBuild.set("999.*")
         }
         withType<JavaCompile> {
-            sourceCompatibility = "17"
-            targetCompatibility = "17"
+            sourceCompatibility = javaVersion.toString()
+            targetCompatibility = javaVersion.toString()
         }
     }
 
