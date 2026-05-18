@@ -1,10 +1,10 @@
 package io.github.uniclog.docs
 
-import com.intellij.codeInsight.template.impl.TemplateContextTypes
+import com.intellij.codeInsight.template.TemplateContextType
 import com.intellij.codeInsight.template.impl.TemplateImpl
 import com.intellij.codeInsight.template.impl.TemplateSettings
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
@@ -16,9 +16,9 @@ import java.io.FileInputStream
 const val GROUP_PREFIX = "Custom: "
 private const val IDEA_LIVE_TEMPLATES = ".idea/liveTemplates"
 
-class ProjectSnippetsActivity : ProjectActivity {
+class ProjectSnippetsActivity : StartupActivity {
 
-    override suspend fun execute(project: Project) {
+    override fun runActivity(project: Project) {
         println("ProjectSnippetsActivity: Starting for project ${project.name}")
         reloadTemplates(project)
         project.messageBus.connect().subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
@@ -161,8 +161,9 @@ class ProjectSnippetsActivity : ProjectActivity {
 
     private fun setContext(template: TemplateImpl, contextId: String?, isEnabled: Boolean) {
         if (contextId == null) return
-        val contextType =
-            TemplateContextTypes.getAllContextTypes().find { it.contextId.equals(contextId, ignoreCase = true) }
+        val contextType = com.intellij.openapi.extensions.ExtensionPointName
+            .create<TemplateContextType>("com.intellij.liveTemplateContext")
+            .extensionList.find { it.contextId.equals(contextId, ignoreCase = true) }
         if (contextType != null) {
             template.templateContext.setEnabled(contextType, isEnabled)
             // println("ProjectSnippetsActivity: Set context '$contextId' for template '${template.key}'")

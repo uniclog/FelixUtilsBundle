@@ -1,59 +1,50 @@
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "2.1.0"
-    id("org.jetbrains.intellij.platform") version "2.10.4"
+    kotlin("jvm") version "1.9.22"
+    id("org.jetbrains.intellij") version "1.17.4"
 }
 
-repositories {
-    mavenCentral()
-    maven("https://www.jetbrains.com/intellij-repository/releases")
-    intellijPlatform {
-        defaultRepositories()
-    }
+intellij {
+    version.set(project.findProperty("platformVersion")?.toString() ?: "2023.3.2")
 }
 
-dependencies {
-    intellijPlatform {
-        // intellijIdea("2026.1")
-        // testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
+group = "io.github.uniclog"
+version = "1.0.1"
 
-        // pluginModule(implementation(project(":plugin-a")))
-        // pluginModule(implementation(project(":plugin-b")))
-        pluginModule(implementation(project(":config-deployer")))
-        pluginModule(implementation(project(":ankey-docker-runner")))
-        pluginModule(implementation(project(":common-docs-markdown-plugin")))
+val platformVersion: String = project.findProperty("platformVersion")?.toString() ?: "2023.3.2"
+
+val javaVersion: JavaVersion = when {
+    platformVersion.startsWith("2021") -> JavaVersion.VERSION_11
+    platformVersion.startsWith("2026") -> JavaVersion.VERSION_21
+    else -> JavaVersion.VERSION_17
+}
+
+val buildNumber: String = when {
+    platformVersion.startsWith("2021") -> "212"
+    platformVersion.startsWith("2026") -> "261"
+    else -> "232"
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
     }
 }
 
 subprojects {
-    apply(plugin = "org.jetbrains.intellij.platform")
+    apply(plugin = "org.jetbrains.intellij")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "java")
 
-    val platformVersion = project.findProperty("platformVersion")?.toString() ?: "2023.3.2"
-
-    val (javaVersion, buildNumber) = when {
-        platformVersion.startsWith("2021") -> JavaVersion.VERSION_11 to "212"
-        platformVersion.startsWith("2026") -> JavaVersion.VERSION_21 to "261"
-        else -> JavaVersion.VERSION_17 to "232" // Default for 2022-2025
-    }
-
-    dependencies {
-        intellijPlatform {
-            intellijIdea(platformVersion)
-        }
-    }
-
-    repositories {
-        mavenCentral()
-        intellijPlatform {
-            defaultRepositories()
-        }
+    intellij {
+        version.set(platformVersion)
+        type.set("IU")
+        downloadSources.set(true)
     }
 
     kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(javaVersion.toString()))
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(javaVersion.majorVersion))
         }
     }
 
@@ -67,37 +58,17 @@ subprojects {
             targetCompatibility = javaVersion.toString()
         }
     }
-
 }
 
 tasks.register<Zip>("buildBundle") {
     group = "build"
     description = "Builds a bundle containing plugins"
-
     archiveFileName.set("plugins-bundle.zip")
     destinationDirectory.set(layout.buildDirectory.dir("bundle"))
-
-    val plugin1 = tasks.getByPath(":ankey-docker-runner:buildPlugin")
-    val plugin2 = tasks.getByPath(":config-deployer:buildPlugin")
-
-    dependsOn(plugin1, plugin2)
-
-    from(
-        zipTree(
-            project(":plugin-a")
-                .tasks.named("buildPlugin").get().outputs.files.singleFile
-        )
-    )
-    from(
-        zipTree(
-            project(":plugin-b")
-                .tasks.named("buildPlugin").get().outputs.files.singleFile
-        )
-    )
-    from(
-        zipTree(
-            project(":ankey-docker-runner")
-                .tasks.named("buildPlugin").get().outputs.files.singleFile
-        )
-    )
+    val projects = listOf("ankey-docker-runner", "config-deployer", "common-docs-markdown-plugin")
+    projects.forEach { name ->
+        val buildPluginTask = project(":$name").tasks.named("buildPlugin")
+        dependsOn(buildPluginTask)
+        from(buildPluginTask.map { zipTree(it.outputs.files.singleFile) })
+    }
 }
