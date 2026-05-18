@@ -89,9 +89,18 @@ class ProjectSnippetsActivity : ProjectActivity {
                 val template = TemplateImpl(name, value, finalGroupName)
 
                 template.description = templateElement.getAttributeValue("description")
+                templateElement.getAttributeValue("id")?.let { template.id = it }
                 templateElement.getAttributeValue("toReformat")?.toBoolean()?.let { template.isToReformat = it }
                 templateElement.getAttributeValue("toShortenLongNames")?.toBoolean()
                     ?.let { template.isToShortenLongNames = it }
+
+                templateElement.getChildren("variable").forEach { varElement ->
+                    val varName = varElement.getAttributeValue("name") ?: return@forEach
+                    val exp = varElement.getAttributeValue("expression") ?: ""
+                    val defaultValue = varElement.getAttributeValue("defaultValue") ?: ""
+                    val alwaysStopAt = varElement.getAttributeValue("alwaysStopAt")?.toBoolean() ?: true
+                    template.addVariable(varName, exp, defaultValue, alwaysStopAt)
+                }
 
                 templateElement.getChild("context")?.getChildren("option")?.forEach { option ->
                     val contextId = option.getAttributeValue("name")
@@ -118,8 +127,18 @@ class ProjectSnippetsActivity : ProjectActivity {
             val template = TemplateImpl(name, value, finalGroupName)
 
             template.description = tData["description"] as? String
+            template.id = tData["id"] as? String
             template.isToReformat = tData["reformat"] as? Boolean ?: false
             template.isToShortenLongNames = tData["toShortenLongNames"] as? Boolean ?: true
+
+            val vars = (tData["vars"] ?: tData["variables"]) as? Map<String, Any>
+            vars?.forEach { (varName, varConfig) ->
+                val config = varConfig as? Map<String, Any>
+                val exp = (config?.get("exp") ?: config?.get("expression") ?: "") as String
+                val default = (config?.get("default") ?: config?.get("defaultValue") ?: "") as String
+                val skip = (config?.get("skip") ?: config?.get("skipIfDefined")) as? Boolean ?: false
+                template.addVariable(varName, exp, default, !skip)
+            }
 
             val contexts = tData["context"] as? Map<String, Boolean>
             contexts?.forEach { (contextId, isEnabled) ->

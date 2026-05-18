@@ -24,3 +24,40 @@ templates:
       <span class="warn-box">
           $END$
       </span>
+
+  # 3
+  - name: fset
+    description: "Create a fluent setter"
+    reformat: true
+    context:
+      JAVA_CODE: true
+    value: |
+      public $CLASS_NAME$ set$METHOD_NAME$($TYPE$ $VAR_NAME$) {
+          this.$VAR_NAME$ = $VAR_NAME$;
+          return this;
+      }
+    vars:
+      CLASS_NAME:
+        exp: "className()"
+        skip: true
+      TYPE:
+        exp: "" # Оставляем пустым для ручного ввода
+      VAR_NAME:
+        exp: "suggestVariableName()"
+      METHOD_NAME:
+        exp: "capitalize(VAR_NAME)"
+
+
+  # 4
+  - name: asteq
+    id: "my.custom.assert.equals"
+    description: "Assert Equals with Static Import"
+    useStaticImport: true
+    reformat: true
+    context:
+      JAVA_CODE: true
+    value: |
+      Assert.assertEquals($EXPECTED$, $ACTUAL$);
+    vars:
+      EXPECTED: { exp: "" }
+      ACTUAL: { exp: "" }
