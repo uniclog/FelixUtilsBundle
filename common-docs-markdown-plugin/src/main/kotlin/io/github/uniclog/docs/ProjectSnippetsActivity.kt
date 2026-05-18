@@ -91,8 +91,9 @@ class ProjectSnippetsActivity : ProjectActivity {
                 template.description = templateElement.getAttributeValue("description")
                 templateElement.getAttributeValue("id")?.let { template.id = it }
                 templateElement.getAttributeValue("toReformat")?.toBoolean()?.let { template.isToReformat = it }
-                templateElement.getAttributeValue("toShortenLongNames")?.toBoolean()
-                    ?.let { template.isToShortenLongNames = it }
+                val shortenNames = templateElement.getAttributeValue("toShortenLongNames")
+                    ?: templateElement.getAttributeValue("toShortenFQNames")
+                shortenNames?.toBoolean()?.let { template.isToShortenLongNames = it }
 
                 templateElement.getChildren("variable").forEach { varElement ->
                     val varName = varElement.getAttributeValue("name") ?: return@forEach
@@ -129,14 +130,22 @@ class ProjectSnippetsActivity : ProjectActivity {
             template.description = tData["description"] as? String
             template.id = tData["id"] as? String
             template.isToReformat = tData["reformat"] as? Boolean ?: false
-            template.isToShortenLongNames = tData["toShortenLongNames"] as? Boolean ?: true
+            template.isToShortenLongNames = (tData["toShortenLongNames"] ?: tData["toShortenFQNames"]) as? Boolean ?: true
 
             val vars = (tData["vars"] ?: tData["variables"]) as? Map<String, Any>
             vars?.forEach { (varName, varConfig) ->
-                val config = varConfig as? Map<String, Any>
-                val exp = (config?.get("exp") ?: config?.get("expression") ?: "") as String
-                val default = (config?.get("default") ?: config?.get("defaultValue") ?: "") as String
-                val skip = (config?.get("skip") ?: config?.get("skipIfDefined")) as? Boolean ?: false
+                var exp = ""
+                var default = ""
+                var skip = false
+
+                if (varConfig is Map<*, *>) {
+                    exp = (varConfig["exp"] ?: varConfig["expression"] ?: "").toString()
+                    default = (varConfig["default"] ?: varConfig["defaultValue"] ?: varConfig["prompt"] ?: "").toString()
+                    skip = (varConfig["skip"] ?: varConfig["skipIfDefined"]) as? Boolean ?: false
+                } else if (varConfig is String) {
+                    exp = varConfig
+                }
+
                 template.addVariable(varName, exp, default, !skip)
             }
 

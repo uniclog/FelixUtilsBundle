@@ -6,7 +6,6 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <defaultLiveTemplates file="liveTemplates/MarkdownSnippets.xml"/>
         <postStartupActivity implementation="io.github.uniclog.docs.ProjectSnippetsActivity"/>
     </extensions>
 
