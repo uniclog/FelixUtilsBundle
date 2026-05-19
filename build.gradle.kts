@@ -45,6 +45,11 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "java")
 
+    // Export variables to subprojects
+    project.extra["buildNumber"] = buildNumber
+    project.extra["javaVersion"] = javaVersion
+    project.extra["platformVersion"] = platformVersion
+
     intellij {
         version.set(platformVersion)
         type.set("IU")
