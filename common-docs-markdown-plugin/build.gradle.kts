@@ -7,13 +7,11 @@ plugins {
 val platformVersion = project.findProperty("platformVersion")?.toString() ?: "2023.3.2"
 val buildNumber = when {
     platformVersion.startsWith("2021") -> "212"
+    platformVersion.startsWith("2022") -> "222"
+    platformVersion.startsWith("2024") -> "241"
+    platformVersion.startsWith("2025") -> "251"
     platformVersion.startsWith("2026") -> "261"
     else -> "232"
-}
-val javaVersionMajor = when {
-    platformVersion.startsWith("2021") -> "11"
-    platformVersion.startsWith("2026") -> "21"
-    else -> "17"
 }
 
 val buildNumberFile = file("build-number.txt")
