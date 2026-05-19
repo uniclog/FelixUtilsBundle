@@ -15,6 +15,7 @@ val platformVersion: String = project.findProperty("platformVersion")?.toString(
 
 val javaVersion: JavaVersion = when {
     platformVersion.startsWith("2021") -> JavaVersion.VERSION_11
+    platformVersion.startsWith("2023") -> JavaVersion.VERSION_17
     platformVersion.startsWith("2026") -> JavaVersion.VERSION_21
     else -> JavaVersion.VERSION_17
 }
