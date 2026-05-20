@@ -96,6 +96,6 @@ tasks.register<Zip>("buildBundle") {
     projects.forEach { name ->
         val buildPluginTask = project(":$name").tasks.named("buildPlugin")
         dependsOn(buildPluginTask)
-        from(buildPluginTask.map { zipTree(it.outputs.files.singleFile) })
+        from(buildPluginTask.map { it.outputs.files })
     }
 }
