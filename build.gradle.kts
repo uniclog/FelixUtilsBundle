@@ -88,72 +88,31 @@ subprojects {
 
 tasks.register("buildBundle") {
     group = "build"
-    description = "Prepares a unified local plugin repository for all platform versions"
-    val bundleDir = layout.buildDirectory.dir("bundle/all")
-    val projects = listOf("ankey-docker-runner", "config-deployer", "common-docs-markdown-plugin")
-
-    projects.forEach { name ->
-        dependsOn(project(":$name").tasks.named("buildPlugin"))
-    }
+    description = "Prepares a unified local plugin repository"
+    val bundleDir = layout.buildDirectory.dir("bundle/all").get().asFile
+    val ids = mapOf(
+        "ankey-docker-runner" to "docker-runner-plugin",
+        "common-docs-markdown-plugin" to "common-docs-markdown-plugin",
+        "config-deployer" to "io.github.uniclog.AnkeyConfigDeoloyer")
+    
+    dependsOn(ids.keys.map { ":$it:buildPlugin" })
 
     doLast {
-        bundleDir.get().asFile.mkdirs()
-        val xmlFile = bundleDir.get().file("updatePlugins.xml").asFile
-        
-        // Load existing plugins from XML if it exists to support incremental builds across platform versions
-        val existingContent = if (xmlFile.exists()) xmlFile.readText() else ""
-        val pluginEntries = mutableMapOf<String, MutableList<String>>()
+        bundleDir.mkdirs()
+        val xmlFile = File(bundleDir, "updatePlugins.xml")
+        val entries = if (xmlFile.exists()) Regex("<plugin.*?</plugin>", RegexOption.DOT_MATCHES_ALL).findAll(xmlFile.readText()).map { it.value }.toMutableList() else mutableListOf()
 
-        // Helper to parse existing entries (very basic string parsing for robustness)
-        if (existingContent.isNotEmpty()) {
-            val regex = Regex("<plugin id=\"(.*?)\" url=\"(.*?)\" version=\"(.*?)\">(.*?)</plugin>", RegexOption.DOT_MATCHES_ALL)
-            regex.findAll(existingContent).forEach { match ->
-                val id = match.groups[1]?.value ?: ""
-                val entry = match.value
-                pluginEntries.getOrPut(id) { mutableListOf() }.add(entry)
-            }
-        }
-
-        projects.forEach { name ->
-            val subProject = project(":$name")
-            val buildPluginTask = subProject.tasks.named<org.jetbrains.intellij.tasks.BuildPluginTask>("buildPlugin").get()
-            val zipFile = buildPluginTask.outputs.files.singleFile
+        ids.forEach { (name, id) ->
+            val p = project(":$name")
+            val zip = p.tasks.named<org.jetbrains.intellij.tasks.BuildPluginTask>("buildPlugin").get().outputs.files.singleFile
+            val target = "${p.name}-${p.version}.zip"
             
-            // Copy with version in name to avoid overwrites if running for different platforms
-            val targetName = "${subProject.name}-${subProject.version}.zip"
-            copy {
-                from(zipFile)
-                into(bundleDir)
-                rename { targetName }
-            }
+            copy { from(zip); into(bundleDir); rename { target } }
 
-            val pluginId = when (name) {
-                "ankey-docker-runner" -> "docker-runner-plugin"
-                "common-docs-markdown-plugin" -> "common-docs-markdown-plugin"
-                "config-deployer" -> "io.github.uniclog.AnkeyConfigDeoloyer"
-                else -> name
-            }
-
-            val newEntry = """
-                <plugin id="$pluginId" url="$targetName" version="${subProject.version}">
-                    <idea-version since-build="$buildNumber" until-build="999.*" />
-                    <name>${subProject.name}</name>
-                </plugin>
-            """.trimIndent()
-
-            // Update or add the entry for this specific version
-            val entries = pluginEntries.getOrPut(pluginId) { mutableListOf() }
-            entries.removeIf { it.contains("version=\"${subProject.version}\"") }
-            entries.add(newEntry)
+            val entry = "<plugin id=\"$id\" url=\"$target\" version=\"${p.version}\"><idea-version since-build=\"$buildNumber\" until-build=\"999.*\" /><name>${p.name}</name></plugin>"
+            entries.removeIf { it.contains("id=\"$id\"") && it.contains("version=\"${p.version}\"") }
+            entries.add(entry)
         }
-
-        val xmlContent = StringBuilder("<plugins>\n")
-        pluginEntries.values.flatten().forEach { entry ->
-            xmlContent.append(entry).append("\n")
-        }
-        xmlContent.append("</plugins>")
-        
-        xmlFile.writeText(xmlContent.toString())
-        println("Unified repository updated at: ${bundleDir.get().asFile.absolutePath}")
+        xmlFile.writeText("<plugins>\n  ${entries.joinToString("\n  ")}\n</plugins>")
     }
 }
