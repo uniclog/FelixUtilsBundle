@@ -88,10 +88,8 @@ subprojects {
 
 tasks.register("buildBundle") {
     group = "build"
-    description = "Prepares a local plugin repository"
-    val majorVersion = platformVersion.substringBefore(".")
-    val bundleDir = layout.buildDirectory.dir("bundle/$majorVersion")
-
+    description = "Prepares a unified local plugin repository for all platform versions"
+    val bundleDir = layout.buildDirectory.dir("bundle/all")
     val projects = listOf("ankey-docker-runner", "config-deployer", "common-docs-markdown-plugin")
 
     projects.forEach { name ->
@@ -99,19 +97,34 @@ tasks.register("buildBundle") {
     }
 
     doLast {
-        val xmlFile = bundleDir.get().file("updatePlugins.xml").asFile
         bundleDir.get().asFile.mkdirs()
+        val xmlFile = bundleDir.get().file("updatePlugins.xml").asFile
+        
+        // Load existing plugins from XML if it exists to support incremental builds across platform versions
+        val existingContent = if (xmlFile.exists()) xmlFile.readText() else ""
+        val pluginEntries = mutableMapOf<String, MutableList<String>>()
 
-        val xmlContent = StringBuilder("<plugins>\n")
+        // Helper to parse existing entries (very basic string parsing for robustness)
+        if (existingContent.isNotEmpty()) {
+            val regex = Regex("<plugin id=\"(.*?)\" url=\"(.*?)\" version=\"(.*?)\">(.*?)</plugin>", RegexOption.DOT_MATCHES_ALL)
+            regex.findAll(existingContent).forEach { match ->
+                val id = match.groups[1]?.value ?: ""
+                val entry = match.value
+                pluginEntries.getOrPut(id) { mutableListOf() }.add(entry)
+            }
+        }
 
         projects.forEach { name ->
             val subProject = project(":$name")
             val buildPluginTask = subProject.tasks.named<org.jetbrains.intellij.tasks.BuildPluginTask>("buildPlugin").get()
             val zipFile = buildPluginTask.outputs.files.singleFile
-
+            
+            // Copy with version in name to avoid overwrites if running for different platforms
+            val targetName = "${subProject.name}-${subProject.version}.zip"
             copy {
                 from(zipFile)
                 into(bundleDir)
+                rename { targetName }
             }
 
             val pluginId = when (name) {
@@ -121,15 +134,26 @@ tasks.register("buildBundle") {
                 else -> name
             }
 
-            xmlContent.append("  <plugin id=\"$pluginId\" url=\"${zipFile.name}\" version=\"${subProject.version}\">\n")
-            xmlContent.append("    <idea-version since-build=\"$buildNumber\" until-build=\"999.*\" />\n")
-            xmlContent.append("    <name>${subProject.name}</name>\n")
-            xmlContent.append("  </plugin>\n")
+            val newEntry = """
+                <plugin id="$pluginId" url="$targetName" version="${subProject.version}">
+                    <idea-version since-build="$buildNumber" until-build="999.*" />
+                    <name>${subProject.name}</name>
+                </plugin>
+            """.trimIndent()
+
+            // Update or add the entry for this specific version
+            val entries = pluginEntries.getOrPut(pluginId) { mutableListOf() }
+            entries.removeIf { it.contains("version=\"${subProject.version}\"") }
+            entries.add(newEntry)
         }
 
+        val xmlContent = StringBuilder("<plugins>\n")
+        pluginEntries.values.flatten().forEach { entry ->
+            xmlContent.append(entry).append("\n")
+        }
         xmlContent.append("</plugins>")
+        
         xmlFile.writeText(xmlContent.toString())
-
-        println("Local repository created at: ${bundleDir.get().asFile.absolutePath}")
+        println("Unified repository updated at: ${bundleDir.get().asFile.absolutePath}")
     }
 }
