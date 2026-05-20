@@ -1,3 +1,3 @@
 rootProject.name = "Idea Plugins"
 
-include(/*"config-deployer", "ankey-docker-runner", */ "common-docs-markdown-plugin")
+include("ankey-docker-runner", "config-deployer", "common-docs-markdown-plugin")

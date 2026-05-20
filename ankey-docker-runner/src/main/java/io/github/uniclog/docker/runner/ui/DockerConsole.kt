@@ -37,8 +37,10 @@ object DockerConsole {
             return existingContent.component as ConsoleView
         }
 
-        val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
-        val content = ContentFactory.getInstance().createContent(console.component, stackName, false)
+        val console = ApplicationManager.getApplication().getService(TextConsoleBuilderFactory::class.java)
+            .createBuilder(project).console
+        val content = ApplicationManager.getApplication().getService(ContentFactory::class.java)
+            .createContent(console.component, stackName, false)
 
         contentManager.addContent(content)
         contentManager.setSelectedContent(content)

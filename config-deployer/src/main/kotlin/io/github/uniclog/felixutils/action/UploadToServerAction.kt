@@ -2,7 +2,7 @@ package io.github.uniclog.felixutils.action
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ActionUpdateThread
+// import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.progress.ProgressIndicator
@@ -24,7 +24,9 @@ class UploadToServerAction : AnAction() {
     private val contextResolver = UploadContextResolver()
     private val httpService = FelixHttpService()
 
+    /*
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+    */
 
     override fun actionPerformed(event: AnActionEvent) {
         val context = contextResolver.resolve(event) ?: return

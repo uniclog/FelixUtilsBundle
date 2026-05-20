@@ -1,13 +1,13 @@
 val platformVersion: String = project.findProperty("platformVersion")?.toString() ?: "2023.3.2"
 
 val kotlinVersion = when {
-    platformVersion.startsWith("2024") || platformVersion.startsWith("2025") || platformVersion.startsWith("2026") -> "2.0.21"
+    platformVersion.startsWith("2024") || platformVersion.startsWith("2025") || platformVersion.startsWith("2026") -> "2.1.10"
     else -> "1.9.22"
 }
 
 plugins {
     id("java")
-    kotlin("jvm") version "2.0.21" // Keep the latest plugin version, but control toolchain below
+    kotlin("jvm") version "2.1.10" // Upgrade to 2.1.10 for better 2026 support
     id("org.jetbrains.intellij") version "1.17.4"
 }
 
@@ -89,7 +89,8 @@ subprojects {
 tasks.register<Zip>("buildBundle") {
     group = "build"
     description = "Builds a bundle containing plugins"
-    archiveFileName.set("plugins-bundle.zip")
+    val majorVersion = platformVersion.substringBefore(".")
+    archiveFileName.set("plugins-bundle-$majorVersion.zip")
     destinationDirectory.set(layout.buildDirectory.dir("bundle"))
     val projects = listOf("ankey-docker-runner", "config-deployer", "common-docs-markdown-plugin")
     projects.forEach { name ->
