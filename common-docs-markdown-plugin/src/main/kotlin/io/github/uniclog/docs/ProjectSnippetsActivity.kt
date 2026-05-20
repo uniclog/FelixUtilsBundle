@@ -3,6 +3,7 @@ package io.github.uniclog.docs
 import com.intellij.codeInsight.template.TemplateContextType
 import com.intellij.codeInsight.template.impl.TemplateImpl
 import com.intellij.codeInsight.template.impl.TemplateSettings
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.JDOMUtil
@@ -161,26 +162,34 @@ class ProjectSnippetsActivity : StartupActivity {
 
     private fun setContext(template: TemplateImpl, contextId: String?, isEnabled: Boolean) {
         if (contextId == null) return
-        val ep = com.intellij.openapi.extensions.ExtensionPointName.create<Any>("com.intellij.liveTemplateContext")
-        val contextType = ep.extensionList.firstNotNullOfOrNull { item ->
-            if (item is TemplateContextType && item.contextId.equals(contextId, ignoreCase = true)) {
-                item
-            } else {
+        try {
+            val area = ApplicationManager.getApplication().extensionArea
+            val ep = area.getExtensionPoint<Any>("com.intellij.liveTemplateContext")
+            for (item in ep.extensions) {
                 try {
-                    val itemId = item.javaClass.getMethod("getContextId").invoke(item) as? String
+                    val itemClass = item.javaClass
+                    val getContextIdMethod = try { itemClass.getMethod("getContextId") } catch (e: Exception) { null }
+                    val itemId = getContextIdMethod?.invoke(item) as? String
+
                     if (itemId.equals(contextId, ignoreCase = true)) {
-                        item.javaClass.getMethod("getInstance").invoke(item) as? TemplateContextType
-                    } else null
+                        val contextType = if (item is TemplateContextType) {
+                            item
+                        } else {
+                            val getInstanceMethod = try { itemClass.getMethod("getInstance") } catch (e: Exception) { null }
+                            getInstanceMethod?.invoke(item) as? TemplateContextType
+                        }
+
+                        if (contextType != null) {
+                            template.templateContext.setEnabled(contextType, isEnabled)
+                            return
+                        }
+                    }
                 } catch (e: Exception) {
-                    null
+                    // skip
                 }
             }
-        }
-
-        if (contextType != null) {
-            template.templateContext.setEnabled(contextType, isEnabled)
-        } else {
-            println("ProjectSnippetsActivity: WARNING - Context '$contextId' NOT FOUND for template '${template.key}'")
+        } catch (e: Throwable) {
+            println("ProjectSnippetsActivity: Error in setContext: ${e.message}")
         }
     }
 }
