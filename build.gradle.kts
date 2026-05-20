@@ -86,16 +86,50 @@ subprojects {
     }
 }
 
-tasks.register<Zip>("buildBundle") {
+tasks.register("buildBundle") {
     group = "build"
-    description = "Builds a bundle containing plugins"
+    description = "Prepares a local plugin repository"
     val majorVersion = platformVersion.substringBefore(".")
-    archiveFileName.set("plugins-bundle-$majorVersion.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("bundle"))
+    val bundleDir = layout.buildDirectory.dir("bundle/$majorVersion")
+
     val projects = listOf("ankey-docker-runner", "config-deployer", "common-docs-markdown-plugin")
+
     projects.forEach { name ->
-        val buildPluginTask = project(":$name").tasks.named("buildPlugin")
-        dependsOn(buildPluginTask)
-        from(buildPluginTask.map { it.outputs.files })
+        dependsOn(project(":$name").tasks.named("buildPlugin"))
+    }
+
+    doLast {
+        val xmlFile = bundleDir.get().file("updatePlugins.xml").asFile
+        bundleDir.get().asFile.mkdirs()
+
+        val xmlContent = StringBuilder("<plugins>\n")
+
+        projects.forEach { name ->
+            val subProject = project(":$name")
+            val buildPluginTask = subProject.tasks.named<org.jetbrains.intellij.tasks.BuildPluginTask>("buildPlugin").get()
+            val zipFile = buildPluginTask.outputs.files.singleFile
+
+            copy {
+                from(zipFile)
+                into(bundleDir)
+            }
+
+            val pluginId = when (name) {
+                "ankey-docker-runner" -> "docker-runner-plugin"
+                "common-docs-markdown-plugin" -> "common-docs-markdown-plugin"
+                "config-deployer" -> "io.github.uniclog.AnkeyConfigDeoloyer"
+                else -> name
+            }
+
+            xmlContent.append("  <plugin id=\"$pluginId\" url=\"${zipFile.name}\" version=\"${subProject.version}\">\n")
+            xmlContent.append("    <idea-version since-build=\"$buildNumber\" until-build=\"999.*\" />\n")
+            xmlContent.append("    <name>${subProject.name}</name>\n")
+            xmlContent.append("  </plugin>\n")
+        }
+
+        xmlContent.append("</plugins>")
+        xmlFile.writeText(xmlContent.toString())
+
+        println("Local repository created at: ${bundleDir.get().asFile.absolutePath}")
     }
 }
