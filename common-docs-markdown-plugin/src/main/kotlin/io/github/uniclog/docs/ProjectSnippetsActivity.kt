@@ -161,12 +161,24 @@ class ProjectSnippetsActivity : StartupActivity {
 
     private fun setContext(template: TemplateImpl, contextId: String?, isEnabled: Boolean) {
         if (contextId == null) return
-        val contextType = com.intellij.openapi.extensions.ExtensionPointName
-            .create<TemplateContextType>("com.intellij.liveTemplateContext")
-            .extensionList.find { it.contextId.equals(contextId, ignoreCase = true) }
+        val ep = com.intellij.openapi.extensions.ExtensionPointName.create<Any>("com.intellij.liveTemplateContext")
+        val contextType = ep.extensionList.firstNotNullOfOrNull { item ->
+            if (item is TemplateContextType && item.contextId.equals(contextId, ignoreCase = true)) {
+                item
+            } else {
+                try {
+                    val itemId = item.javaClass.getMethod("getContextId").invoke(item) as? String
+                    if (itemId.equals(contextId, ignoreCase = true)) {
+                        item.javaClass.getMethod("getInstance").invoke(item) as? TemplateContextType
+                    } else null
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        }
+
         if (contextType != null) {
             template.templateContext.setEnabled(contextType, isEnabled)
-            // println("ProjectSnippetsActivity: Set context '$contextId' for template '${template.key}'")
         } else {
             println("ProjectSnippetsActivity: WARNING - Context '$contextId' NOT FOUND for template '${template.key}'")
         }
