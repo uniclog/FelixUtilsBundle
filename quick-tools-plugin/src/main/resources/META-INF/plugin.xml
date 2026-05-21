@@ -1,0 +1,14 @@
+<idea-plugin>
+    <id>io.github.uniclog.quicktools</id>
+    <name>Quick Tools</name>
+    <vendor>uniclog</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Quick Tools" 
+                    anchor="right" 
+                    factoryClass="io.github.uniclog.quicktools.QuickToolsToolWindowFactory"
+                    icon="AllIcons.General.Web"/>
+    </extensions>
+</idea-plugin>

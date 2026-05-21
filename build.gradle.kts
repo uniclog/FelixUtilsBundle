@@ -93,7 +93,8 @@ tasks.register("buildBundle") {
     val ids = mapOf(
         "ankey-docker-runner" to "docker-runner-plugin",
         "common-docs-markdown-plugin" to "common-docs-markdown-plugin",
-        "config-deployer" to "io.github.uniclog.AnkeyConfigDeoloyer")
+        "config-deployer" to "io.github.uniclog.AnkeyConfigDeoloyer",
+        "quick-tools-plugin" to "io.github.uniclog.quicktools")
     
     dependsOn(ids.keys.map { ":$it:buildPlugin" })
 
