@@ -22,12 +22,13 @@ class QuickToolsToolWindowFactory : ToolWindowFactory {
             return
         }
         
-        val browser = JBCefBrowser("https://myip.ru")
+        val targetUrl = "http://aic-demo.ai.dev.da.lan"
+        val browser = JBCefBrowser(targetUrl)
         
         // Создаем действие обновления для тулбара окна
-        val refreshAction = object : AnAction("Refresh", "Reload page", AllIcons.Actions.Refresh) {
+        val refreshAction = object : AnAction("Refresh Page", "Reload current page", AllIcons.Actions.Refresh) {
             override fun actionPerformed(e: AnActionEvent) {
-                browser.loadURL("https://myip.ru")
+                browser.cefBrowser.reload()
             }
         }
         
