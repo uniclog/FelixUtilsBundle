@@ -1,6 +1,7 @@
 
-val platformVersion = if (project.hasProperty("platformVersion")) project.property("platformVersion") as String else "2023.3.2"
-val buildNumber = if (project.extra.has("buildNumber")) project.extra.get("buildNumber") as String else "232"
+
+val platformVersion = project.extra["platformVersion"] as String
+val buildNumber = project.extra["buildNumber"] as String
 
 val buildNumberFile = file("build-number.txt")
 
@@ -20,8 +21,10 @@ sourceSets {
 }
 
 tasks.register("incrementBuildNumber") {
+    val file = buildNumberFile
     doLast {
-        buildNumberFile.writeText((currentBuildNumber() + 1).toString())
+        val current = if (file.exists()) file.readText().trim().toInt() else 1
+        file.writeText((current + 1).toString())
     }
 }
 
