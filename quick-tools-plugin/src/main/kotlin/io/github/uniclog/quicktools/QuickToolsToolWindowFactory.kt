@@ -8,11 +8,11 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.ui.jcef.JBCefBrowser
-import com.intellij.ui.jcef.JBCefJSQuery
 import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
+import org.cef.callback.CefAuthCallback
 import org.cef.handler.CefLoadHandlerAdapter
-import org.cef.network.CefRequest
+import org.cef.handler.CefRequestHandlerAdapter
 import java.awt.BorderLayout
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -30,8 +30,25 @@ class QuickToolsToolWindowFactory : ToolWindowFactory {
         }
         
         val panel = JBPanel<JBPanel<*>>(BorderLayout())
-        val browser = JBCefBrowser("https://www.google.com")
+        val browser = JBCefBrowser("https://myip.ru")
         
+        // Handle authentication (proxy/NTLM)
+        browser.jbCefClient.addRequestHandler(object : CefRequestHandlerAdapter() {
+            override fun getAuthCredentials(
+                browser: CefBrowser?,
+                origin_url: String?,
+                isProxy: Boolean,
+                host: String?,
+                port: Int,
+                realm: String?,
+                scheme: String?,
+                callback: CefAuthCallback?
+            ): Boolean {
+                LOG.info("JCEF Auth Required: isProxy=$isProxy, host=$host, origin=$origin_url, scheme=$scheme, realm=$realm")
+                return false
+            }
+        }, browser.cefBrowser)
+
         browser.jbCefClient.addLoadHandler(object : CefLoadHandlerAdapter() {
             override fun onLoadingStateChange(browser: CefBrowser?, isLoading: Boolean, canGoBack: Boolean, canGoForward: Boolean) {
                 LOG.info("JCEF Loading state changed: isLoading=$isLoading")
@@ -42,15 +59,14 @@ class QuickToolsToolWindowFactory : ToolWindowFactory {
             }
         }, browser.cefBrowser)
 
-        // Toolbar for control
         val toolbar = JBPanel<JBPanel<*>>()
-        val refreshButton = JButton("Refresh Google")
-        refreshButton.addActionListener { browser.loadURL("https://www.google.com") }
-        toolbar.add(refreshButton)
-        
         val myIpButton = JButton("Load MyIP")
         myIpButton.addActionListener { browser.loadURL("https://myip.ru") }
         toolbar.add(myIpButton)
+        
+        val googleButton = JButton("Load Google")
+        googleButton.addActionListener { browser.loadURL("https://www.google.com") }
+        toolbar.add(googleButton)
         
         panel.add(toolbar, BorderLayout.NORTH)
         panel.add(browser.component, BorderLayout.CENTER)
