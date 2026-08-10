@@ -14,7 +14,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <applicationConfigurable
                 parentId="tools"
-                instance="io.github.uniclog.felixutils.settings.FelixSettingsConfigurable"
+                instance="com.gis.idm.integration.plugin.ankeyfelixdeployer.settings.FelixSettingsConfigurable"
                 displayName="Ankey Felix Deployer"
                 keywords="felix,json,deploy"
                 id="preferences.FelixSender"/>
@@ -23,7 +23,7 @@
     <actions>
         <action
                 id="UploadToServer"
-                class="io.github.uniclog.felixutils.action.UploadToServerAction"
+                class="com.gis.idm.integration.plugin.ankeyfelixdeployer.action.UploadToServerAction"
                 icon="/META-INF/pluginIcon.svg"
                 text="Upload to Server"
                 description="Open upload dialog for JSON configs and Felix bundles">
